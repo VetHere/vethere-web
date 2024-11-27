@@ -46,6 +46,9 @@ export default function DashboardLayout({
           <Link href="/dashboard/vet-clinics">
             <Button variant="ghost" className="w-full justify-start">Vet Clinics</Button>
           </Link>
+          <Link href="/dashboard/appointments">
+            <Button variant="ghost" className="w-full justify-start">Appointments</Button>
+          </Link>
           <Button variant="ghost" className="w-full justify-start text-red-500" onClick={handleLogout}>
             Logout
           </Button>
