@@ -1,10 +1,10 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Table,
   TableBody,
@@ -12,51 +12,64 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
+} from "@/components/ui/table";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
+} from "@/components/ui/dialog";
 
 export default function MedicalRecordsPage() {
   const [records, setRecords] = useState([
-    { id: 1, patientName: "Fluffy", date: "2023-05-15", diagnosis: "Annual Checkup" },
-  ])
+    {
+      id: 1,
+      patientName: "Fluffy",
+      date: "2023-05-15",
+      time: "10:00 AM",
+      diagnosis: "Annual Checkup",
+      treatment: "General Examination",
+    },
+  ]);
 
-  const [isOpen, setIsOpen] = useState(false)
-  const [currentRecord, setCurrentRecord] = useState(null)
+  const [isOpen, setIsOpen] = useState(false);
+  const [currentRecord, setCurrentRecord] = useState(null);
 
   const handleSubmit = (event) => {
-    event.preventDefault()
-    const formData = new FormData(event.target)
+    event.preventDefault();
+    const formData = new FormData(event.target);
     const newRecord = {
       id: currentRecord ? currentRecord.id : Date.now(),
       patientName: formData.get("patientName"),
       date: formData.get("date"),
+      time: formData.get("time"),
       diagnosis: formData.get("diagnosis"),
-    }
+      treatment: formData.get("treatment"),
+    };
 
     if (currentRecord) {
-      setRecords(records.map(record => record.id === currentRecord.id ? newRecord : record))
+      setRecords(
+        records.map((record) =>
+          record.id === currentRecord.id ? newRecord : record
+        )
+      );
     } else {
-      setRecords([...records, newRecord])
+      setRecords([...records, newRecord]);
     }
 
-    setIsOpen(false)
-    setCurrentRecord(null)
-  }
+    setIsOpen(false);
+    setCurrentRecord(null);
+  };
 
   const handleEdit = (record) => {
-    setCurrentRecord(record)
-    setIsOpen(true)
-  }
+    setCurrentRecord(record);
+    setIsOpen(true);
+  };
 
   const handleDelete = (id) => {
-    setRecords(records.filter(record => record.id !== id))
-  }
+    setRecords(records.filter((record) => record.id !== id));
+  };
 
   return (
     <div className="space-y-4">
@@ -64,39 +77,62 @@ export default function MedicalRecordsPage() {
         <h1 className="text-2xl font-bold">Medical Records</h1>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
-            <Button onClick={() => setCurrentRecord(null)}>Add New Record</Button>
+            <Button onClick={() => setCurrentRecord(null)}>
+              Add New Record
+            </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>{currentRecord ? "Edit Record" : "Add New Record"}</DialogTitle>
+              <DialogTitle>
+                {currentRecord ? "Edit Record" : "Add New Record"}
+              </DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <Label htmlFor="patientName">Patient Name</Label>
-                <Input 
-                  id="patientName" 
-                  name="patientName" 
+                <Input
+                  id="patientName"
+                  name="patientName"
                   defaultValue={currentRecord?.patientName || ""}
-                  required 
+                  required
                 />
               </div>
               <div>
                 <Label htmlFor="date">Date</Label>
-                <Input 
-                  id="date" 
-                  name="date" 
-                  type="date" 
+                <Input
+                  id="date"
+                  name="date"
+                  type="date"
                   defaultValue={currentRecord?.date || ""}
-                  required 
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="time">Time</Label>
+                <Input
+                  id="time"
+                  name="time"
+                  type="time"
+                  defaultValue={currentRecord?.time || ""}
+                  required
                 />
               </div>
               <div>
                 <Label htmlFor="diagnosis">Diagnosis</Label>
-                <Textarea 
-                  id="diagnosis" 
-                  name="diagnosis" 
+                <Textarea
+                  id="diagnosis"
+                  name="diagnosis"
                   defaultValue={currentRecord?.diagnosis || ""}
-                  required 
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="treatment">Treatment</Label>
+                <Textarea
+                  id="treatment"
+                  name="treatment"
+                  defaultValue={currentRecord?.treatment || ""}
+                  required
                 />
               </div>
               <Button type="submit">Save</Button>
@@ -109,7 +145,9 @@ export default function MedicalRecordsPage() {
           <TableRow>
             <TableHead>Patient Name</TableHead>
             <TableHead>Date</TableHead>
+            <TableHead>Time</TableHead>
             <TableHead>Diagnosis</TableHead>
+            <TableHead>Treatment</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -118,16 +156,21 @@ export default function MedicalRecordsPage() {
             <TableRow key={record.id}>
               <TableCell>{record.patientName}</TableCell>
               <TableCell>{record.date}</TableCell>
+              <TableCell>{record.time}</TableCell>
               <TableCell>{record.diagnosis}</TableCell>
+              <TableCell>{record.treatment}</TableCell>
               <TableCell>
-                <Button variant="ghost" onClick={() => handleEdit(record)}>Edit</Button>
-                <Button variant="ghost" onClick={() => handleDelete(record.id)}>Delete</Button>
+                <Button variant="ghost" onClick={() => handleEdit(record)}>
+                  Edit
+                </Button>
+                <Button variant="ghost" onClick={() => handleDelete(record.id)}>
+                  Delete
+                </Button>
               </TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
     </div>
-  )
+  );
 }
-

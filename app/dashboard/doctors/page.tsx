@@ -1,10 +1,9 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Table,
   TableBody,
@@ -12,53 +11,63 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
+} from "@/components/ui/table";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+} from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function DoctorsPage() {
   const [doctors, setDoctors] = useState([
-    { id: 1, name: "Dr. John Doe", email: "john.doe@example.com", specialization: "General", experience: "5 years" },
-  ])
+    {
+      id: 1,
+      name: "Dr. John Doe",
+      email: "john.doe@example.com",
+      specialization: "General",
+      password: "securepassword",
+    },
+  ]);
 
-  const [isOpen, setIsOpen] = useState(false)
-  const [currentDoctor, setCurrentDoctor] = useState(null)
+  const [isOpen, setIsOpen] = useState(false);
+  const [currentDoctor, setCurrentDoctor] = useState(null);
 
   const handleSubmit = (event) => {
-    event.preventDefault()
-    const formData = new FormData(event.target)
+    event.preventDefault();
+    const formData = new FormData(event.target);
     const newDoctor = {
       id: currentDoctor ? currentDoctor.id : Date.now(),
       name: formData.get("name"),
       email: formData.get("email"),
       specialization: formData.get("specialization"),
-      experience: formData.get("experience"),
-    }
+      password: formData.get("password"),
+    };
 
     if (currentDoctor) {
-      setDoctors(doctors.map(doctor => doctor.id === currentDoctor.id ? newDoctor : doctor))
+      setDoctors(
+        doctors.map((doctor) =>
+          doctor.id === currentDoctor.id ? newDoctor : doctor
+        )
+      );
     } else {
-      setDoctors([...doctors, newDoctor])
+      setDoctors([...doctors, newDoctor]);
     }
 
-    setIsOpen(false)
-    setCurrentDoctor(null)
-  }
+    setIsOpen(false);
+    setCurrentDoctor(null);
+  };
 
   const handleEdit = (doctor) => {
-    setCurrentDoctor(doctor)
-    setIsOpen(true)
-  }
+    setCurrentDoctor(doctor);
+    setIsOpen(true);
+  };
 
   const handleDelete = (id) => {
-    setDoctors(doctors.filter(doctor => doctor.id !== id))
-  }
+    setDoctors(doctors.filter((doctor) => doctor.id !== id));
+  };
 
   return (
     <div className="space-y-4">
@@ -66,48 +75,53 @@ export default function DoctorsPage() {
         <h1 className="text-2xl font-bold">Doctors</h1>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
-            <Button onClick={() => setCurrentDoctor(null)}>Add New Doctor</Button>
+            <Button onClick={() => setCurrentDoctor(null)}>
+              Add New Doctor
+            </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>{currentDoctor ? "Edit Doctor" : "Add New Doctor"}</DialogTitle>
+              <DialogTitle>
+                {currentDoctor ? "Edit Doctor" : "Add New Doctor"}
+              </DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <Label htmlFor="name">Name</Label>
-                <Input 
-                  id="name" 
-                  name="name" 
+                <Input
+                  id="name"
+                  name="name"
                   defaultValue={currentDoctor?.name || ""}
-                  required 
+                  required
                 />
               </div>
               <div>
                 <Label htmlFor="email">Email</Label>
-                <Input 
-                  id="email" 
-                  name="email" 
-                  type="email" 
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
                   defaultValue={currentDoctor?.email || ""}
-                  required 
+                  required
                 />
               </div>
               <div>
                 <Label htmlFor="specialization">Specialization</Label>
-                <Input 
-                  id="specialization" 
-                  name="specialization" 
+                <Input
+                  id="specialization"
+                  name="specialization"
                   defaultValue={currentDoctor?.specialization || ""}
-                  required 
+                  required
                 />
               </div>
               <div>
-                <Label htmlFor="experience">Experience</Label>
-                <Input 
-                  id="experience" 
-                  name="experience" 
-                  defaultValue={currentDoctor?.experience || ""}
-                  required 
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  name="password"
+                  type="password"
+                  defaultValue={currentDoctor?.password || ""}
+                  required
                 />
               </div>
               <Button type="submit">Save</Button>
@@ -115,17 +129,36 @@ export default function DoctorsPage() {
           </DialogContent>
         </Dialog>
       </div>
-      <Tabs defaultValue="accounts">
+      <Tabs defaultValue="info">
         <TabsList>
-          <TabsTrigger value="accounts">Doctor Accounts</TabsTrigger>
           <TabsTrigger value="info">Doctor Information</TabsTrigger>
+          <TabsTrigger value="accounts">Doctor Accounts</TabsTrigger>
         </TabsList>
+        <TabsContent value="info">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Specialization</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {doctors.map((doctor) => (
+                <TableRow key={doctor.id}>
+                  <TableCell>{doctor.name}</TableCell>
+                  <TableCell>{doctor.specialization}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TabsContent>
         <TabsContent value="accounts">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
                 <TableHead>Email</TableHead>
+                <TableHead>Password</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -134,34 +167,17 @@ export default function DoctorsPage() {
                 <TableRow key={doctor.id}>
                   <TableCell>{doctor.name}</TableCell>
                   <TableCell>{doctor.email}</TableCell>
+                  <TableCell>{doctor.password}</TableCell>
                   <TableCell>
-                    <Button variant="ghost" onClick={() => handleEdit(doctor)}>Edit</Button>
-                    <Button variant="ghost" onClick={() => handleDelete(doctor.id)}>Delete</Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TabsContent>
-        <TabsContent value="info">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Specialization</TableHead>
-                <TableHead>Experience</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {doctors.map((doctor) => (
-                <TableRow key={doctor.id}>
-                  <TableCell>{doctor.name}</TableCell>
-                  <TableCell>{doctor.specialization}</TableCell>
-                  <TableCell>{doctor.experience}</TableCell>
-                  <TableCell>
-                    <Button variant="ghost" onClick={() => handleEdit(doctor)}>Edit</Button>
-                    <Button variant="ghost" onClick={() => handleDelete(doctor.id)}>Delete</Button>
+                    <Button variant="ghost" onClick={() => handleEdit(doctor)}>
+                      Edit
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      onClick={() => handleDelete(doctor.id)}
+                    >
+                      Delete
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))}
@@ -170,6 +186,5 @@ export default function DoctorsPage() {
         </TabsContent>
       </Tabs>
     </div>
-  )
+  );
 }
-
