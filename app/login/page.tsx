@@ -16,16 +16,40 @@ import {
 import Link from "next/link";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const router = useRouter();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Here you would typically validate the credentials against your backend
-    // For this example, we'll just simulate a successful login
-    localStorage.setItem("isLoggedIn", "true");
-    router.push("/dashboard");
+
+    const payload = {
+      username,
+      password,
+    };
+
+    try {
+      const response = await fetch("api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        localStorage.setItem("isLoggedIn", "true");
+        localStorage.setItem("token", result.token); // Assuming the response includes a token
+        router.push("/dashboard");
+      } else {
+        const result = await response.json();
+        setError(result.message || "Login failed");
+      }
+    } catch (err) {
+      setError("Failed to connect to the server");
+    }
   };
 
   return (
@@ -41,13 +65,12 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit}>
             <div className="grid w-full items-center gap-4">
               <div className="flex flex-col space-y-1.5">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="username">Username</Label>
                 <Input
-                  id="email"
-                  type="email"
-                  placeholder="Enter your email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  id="username"
+                  placeholder="Enter your username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
                   required
                 />
               </div>
@@ -63,6 +86,7 @@ export default function LoginPage() {
                 />
               </div>
             </div>
+            {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
             <Button className="w-full mt-4" type="submit">
               Login
             </Button>
