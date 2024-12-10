@@ -43,6 +43,8 @@ export default function RegisterPage() {
       });
 
       if (response.ok) {
+        const { access_token } = await response.json();
+        localStorage.setItem("access_token", access_token); // Save token locally
         localStorage.setItem("isLoggedIn", "true");
         router.push("/dashboard");
       } else {
