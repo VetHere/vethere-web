@@ -26,7 +26,7 @@ export default function DoctorsPage() {
     {
       id: 1,
       name: "Dr. John Doe",
-      email: "john.doe@example.com",
+      username: "johndoe",
       specialization: "General",
       password: "securepassword",
     },
@@ -41,7 +41,7 @@ export default function DoctorsPage() {
     const newDoctor = {
       id: currentDoctor ? currentDoctor.id : Date.now(),
       name: formData.get("name"),
-      email: formData.get("email"),
+      username: formData.get("username"),
       specialization: formData.get("specialization"),
       password: formData.get("password"),
     };
@@ -96,12 +96,11 @@ export default function DoctorsPage() {
                 />
               </div>
               <div>
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="username">Username</Label>
                 <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  defaultValue={currentDoctor?.email || ""}
+                  id="username"
+                  name="username"
+                  defaultValue={currentDoctor?.username || ""}
                   required
                 />
               </div>
@@ -157,7 +156,7 @@ export default function DoctorsPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
-                <TableHead>Email</TableHead>
+                <TableHead>Username</TableHead>
                 <TableHead>Password</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
@@ -166,7 +165,7 @@ export default function DoctorsPage() {
               {doctors.map((doctor) => (
                 <TableRow key={doctor.id}>
                   <TableCell>{doctor.name}</TableCell>
-                  <TableCell>{doctor.email}</TableCell>
+                  <TableCell>{doctor.username}</TableCell>
                   <TableCell>{doctor.password}</TableCell>
                   <TableCell>
                     <Button variant="ghost" onClick={() => handleEdit(doctor)}>
