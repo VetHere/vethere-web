@@ -1,189 +1,114 @@
 "use client";
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Star } from "lucide-react";
 
-export default function DoctorsPage() {
-  const [doctors, setDoctors] = useState([
-    {
-      id: 1,
-      name: "Dr. John Doe",
-      username: "johndoe",
-      specialization: "General",
-      password: "securepassword",
-    },
-  ]);
+interface Doctor {
+  doctor_id: string;
+  doctor_name: string;
+  doctor_rating: number;
+  specialization: {
+    specialization_id: string;
+    specialization_name: string;
+  };
+}
 
-  const [isOpen, setIsOpen] = useState(false);
-  const [currentDoctor, setCurrentDoctor] = useState(null);
+interface DoctorListResponse {
+  meta: {
+    success: boolean;
+    message: string;
+  };
+  data: Doctor[];
+}
 
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    const formData = new FormData(event.target);
-    const newDoctor = {
-      id: currentDoctor ? currentDoctor.id : Date.now(),
-      name: formData.get("name"),
-      username: formData.get("username"),
-      specialization: formData.get("specialization"),
-      password: formData.get("password"),
+export default function DoctorList() {
+  const [doctors, setDoctors] = useState<Doctor[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchDoctors = async () => {
+      setIsLoading(true);
+      setError(null);
+
+      const adminToken = localStorage.getItem("access_token");
+
+      if (!adminToken) {
+        setError("Admin access token is missing. Please log in.");
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        const response = await fetch("http://localhost:8000/vet/doctors", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${adminToken}`,
+          },
+          body: JSON.stringify({
+            vet_id: "cd540881-9817-401e-b798-25b3eda2fa21",
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch doctors");
+        }
+
+        const data: DoctorListResponse = await response.json();
+
+        if (data.meta.success) {
+          setDoctors(data.data);
+        } else {
+          throw new Error(data.meta.message);
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "An error occurred");
+      } finally {
+        setIsLoading(false);
+      }
     };
 
-    if (currentDoctor) {
-      setDoctors(
-        doctors.map((doctor) =>
-          doctor.id === currentDoctor.id ? newDoctor : doctor
-        )
-      );
-    } else {
-      setDoctors([...doctors, newDoctor]);
-    }
+    fetchDoctors();
+  }, []);
 
-    setIsOpen(false);
-    setCurrentDoctor(null);
-  };
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
-  const handleEdit = (doctor) => {
-    setCurrentDoctor(doctor);
-    setIsOpen(true);
-  };
-
-  const handleDelete = (id) => {
-    setDoctors(doctors.filter((doctor) => doctor.id !== id));
-  };
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Doctors</h1>
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={() => setCurrentDoctor(null)}>
-              Add New Doctor
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>
-                {currentDoctor ? "Edit Doctor" : "Add New Doctor"}
-              </DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <Label htmlFor="name">Name</Label>
-                <Input
-                  id="name"
-                  name="name"
-                  defaultValue={currentDoctor?.name || ""}
-                  required
-                />
+    <div className="container mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-4">Doctor List</h1>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {doctors.map((doctor) => (
+          <Card key={doctor.doctor_id}>
+            <CardHeader>
+              <CardTitle>{doctor.doctor_name}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p>Specialization: {doctor.specialization.specialization_name}</p>
+              <div className="flex items-center mt-2">
+                <span className="mr-1">Rating:</span>
+                {[...Array(5)].map((_, index) => (
+                  <Star
+                    key={index}
+                    className={`h-5 w-5 ${
+                      index < doctor.doctor_rating
+                        ? "text-yellow-400 fill-current"
+                        : "text-gray-300"
+                    }`}
+                  />
+                ))}
               </div>
-              <div>
-                <Label htmlFor="username">Username</Label>
-                <Input
-                  id="username"
-                  name="username"
-                  defaultValue={currentDoctor?.username || ""}
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="specialization">Specialization</Label>
-                <Input
-                  id="specialization"
-                  name="specialization"
-                  defaultValue={currentDoctor?.specialization || ""}
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  name="password"
-                  type="password"
-                  defaultValue={currentDoctor?.password || ""}
-                  required
-                />
-              </div>
-              <Button type="submit">Save</Button>
-            </form>
-          </DialogContent>
-        </Dialog>
+            </CardContent>
+          </Card>
+        ))}
       </div>
-      <Tabs defaultValue="info">
-        <TabsList>
-          <TabsTrigger value="info">Doctor Information</TabsTrigger>
-          <TabsTrigger value="accounts">Doctor Accounts</TabsTrigger>
-        </TabsList>
-        <TabsContent value="info">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Specialization</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {doctors.map((doctor) => (
-                <TableRow key={doctor.id}>
-                  <TableCell>{doctor.name}</TableCell>
-                  <TableCell>{doctor.specialization}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TabsContent>
-        <TabsContent value="accounts">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Username</TableHead>
-                <TableHead>Password</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {doctors.map((doctor) => (
-                <TableRow key={doctor.id}>
-                  <TableCell>{doctor.name}</TableCell>
-                  <TableCell>{doctor.username}</TableCell>
-                  <TableCell>{doctor.password}</TableCell>
-                  <TableCell>
-                    <Button variant="ghost" onClick={() => handleEdit(doctor)}>
-                      Edit
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      onClick={() => handleDelete(doctor.id)}
-                    >
-                      Delete
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TabsContent>
-      </Tabs>
     </div>
   );
 }
