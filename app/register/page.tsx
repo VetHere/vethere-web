@@ -16,47 +16,81 @@ import {
 import Link from "next/link";
 
 export default function RegisterPage() {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const router = useRouter();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Here you would typically send the registration data to your backend
-    // For this example, we'll just simulate a successful registration
-    localStorage.setItem("isLoggedIn", "true");
-    router.push("/dashboard");
+
+    const payload = {
+      username,
+      first_name: firstName,
+      last_name: lastName,
+      password,
+    };
+
+    try {
+      const response = await fetch("api/auth/admin/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (response.ok) {
+        localStorage.setItem("isLoggedIn", "true");
+        router.push("/dashboard");
+      } else {
+        const result = await response.json();
+        setError(result.message || "Registration failed");
+      }
+    } catch (err) {
+      setError("Failed to connect to the server");
+    }
   };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <Card className="w-[350px]">
+      <Card className="w-[400px]">
         <CardHeader>
           <CardTitle>Register</CardTitle>
-          <CardDescription>Create a new account</CardDescription>
+          <CardDescription>Create a new admin account</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit}>
             <div className="grid w-full items-center gap-4">
               <div className="flex flex-col space-y-1.5">
-                <Label htmlFor="name">Name</Label>
+                <Label htmlFor="username">Username</Label>
                 <Input
-                  id="name"
-                  placeholder="Enter your name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  id="username"
+                  placeholder="Enter your username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
                   required
                 />
               </div>
               <div className="flex flex-col space-y-1.5">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="firstName">First Name</Label>
                 <Input
-                  id="email"
-                  type="email"
-                  placeholder="Enter your email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  id="firstName"
+                  placeholder="Enter your first name"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="flex flex-col space-y-1.5">
+                <Label htmlFor="lastName">Last Name</Label>
+                <Input
+                  id="lastName"
+                  placeholder="Enter your last name"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
                   required
                 />
               </div>
@@ -72,6 +106,7 @@ export default function RegisterPage() {
                 />
               </div>
             </div>
+            {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
             <Button className="w-full mt-4" type="submit">
               Register
             </Button>

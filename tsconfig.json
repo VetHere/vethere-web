@@ -30,7 +30,8 @@
     "app/dashboard/vet-clinics/page copy.js",
     "app/dashboard/doctors/page.js",
     "app/dashboard/medical-records/page.js",
-    "app/dashboard/vet-clinics/page.js"
+    "app/dashboard/vet-clinics/page.js",
+    "api/doctors.js"
   ],
   "exclude": ["node_modules"]
 }
