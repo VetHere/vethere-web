@@ -39,9 +39,9 @@ export default function LoginPage() {
       });
 
       if (response.ok) {
-        const result = await response.json();
+        const { access_token } = await response.json(); // Assuming API returns access_token
+        localStorage.setItem("access_token", access_token); // Save token locally
         localStorage.setItem("isLoggedIn", "true");
-        localStorage.setItem("token", result.token); // Assuming the response includes a token
         router.push("/dashboard");
       } else {
         const result = await response.json();
