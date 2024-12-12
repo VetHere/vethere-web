@@ -5,14 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 
 export default function RegisterPage() {
@@ -43,13 +36,21 @@ export default function RegisterPage() {
       });
 
       if (response.ok) {
-        const { access_token } = await response.json();
-        localStorage.setItem("access_token", access_token); // Save token locally
+        const result = await response.json();
+        const { access_token, refresh_token } = result.data;
+        localStorage.setItem("access_token", access_token);
+        localStorage.setItem("refresh_token", refresh_token);
         localStorage.setItem("isLoggedIn", "true");
         router.push("/dashboard");
       } else {
-        const result = await response.json();
-        setError(result.message || "Registration failed");
+        let errorMessage = "Login failed";
+        try {
+          const result = await response.json();
+          errorMessage = result.message || errorMessage;
+        } catch {
+          errorMessage = "An unexpected error occurred";
+        }
+        setError(errorMessage);
       }
     } catch (err) {
       setError("Failed to connect to the server");
@@ -68,44 +69,19 @@ export default function RegisterPage() {
             <div className="grid w-full items-center gap-4">
               <div className="flex flex-col space-y-1.5">
                 <Label htmlFor="username">Username</Label>
-                <Input
-                  id="username"
-                  placeholder="Enter your username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  required
-                />
+                <Input id="username" placeholder="Enter your username" value={username} onChange={(e) => setUsername(e.target.value)} required />
               </div>
               <div className="flex flex-col space-y-1.5">
                 <Label htmlFor="firstName">First Name</Label>
-                <Input
-                  id="firstName"
-                  placeholder="Enter your first name"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  required
-                />
+                <Input id="firstName" placeholder="Enter your first name" value={firstName} onChange={(e) => setFirstName(e.target.value)} required />
               </div>
               <div className="flex flex-col space-y-1.5">
                 <Label htmlFor="lastName">Last Name</Label>
-                <Input
-                  id="lastName"
-                  placeholder="Enter your last name"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  required
-                />
+                <Input id="lastName" placeholder="Enter your last name" value={lastName} onChange={(e) => setLastName(e.target.value)} required />
               </div>
               <div className="flex flex-col space-y-1.5">
                 <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="Create a password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
+                <Input id="password" type="password" placeholder="Create a password" value={password} onChange={(e) => setPassword(e.target.value)} required />
               </div>
             </div>
             {error && <p className="text-red-500 text-sm mt-2">{error}</p>}

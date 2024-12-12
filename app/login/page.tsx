@@ -5,14 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 
 export default function LoginPage() {
@@ -30,7 +23,7 @@ export default function LoginPage() {
     };
 
     try {
-      const response = await fetch("api/auth/login", {
+      const response = await fetch("http://localhost:8000/auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -39,15 +32,23 @@ export default function LoginPage() {
       });
 
       if (response.ok) {
-        const { access_token } = await response.json(); // Assuming API returns access_token
-        localStorage.setItem("access_token", access_token); // Save token locally
+        const result = await response.json();
+        const { access_token, refresh_token } = result.data;
+        localStorage.setItem("access_token", access_token);
+        localStorage.setItem("refresh_token", refresh_token);
         localStorage.setItem("isLoggedIn", "true");
         router.push("/dashboard");
       } else {
-        const result = await response.json();
-        setError(result.message || "Login failed");
+        let errorMessage = "Login failed";
+        try {
+          const result = await response.json();
+          errorMessage = result.message || errorMessage;
+        } catch {
+          errorMessage = "An unexpected error occurred";
+        }
+        setError(errorMessage);
       }
-    } catch (err) {
+    } catch {
       setError("Failed to connect to the server");
     }
   };
@@ -57,33 +58,18 @@ export default function LoginPage() {
       <Card className="w-[350px]">
         <CardHeader>
           <CardTitle>Login</CardTitle>
-          <CardDescription>
-            Enter your credentials to access your account
-          </CardDescription>
+          <CardDescription>Enter your credentials to access your account</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit}>
             <div className="grid w-full items-center gap-4">
               <div className="flex flex-col space-y-1.5">
                 <Label htmlFor="username">Username</Label>
-                <Input
-                  id="username"
-                  placeholder="Enter your username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  required
-                />
+                <Input id="username" placeholder="Enter your username" value={username} onChange={(e) => setUsername(e.target.value)} required />
               </div>
               <div className="flex flex-col space-y-1.5">
                 <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
+                <Input id="password" type="password" placeholder="Enter your password" value={password} onChange={(e) => setPassword(e.target.value)} required />
               </div>
             </div>
             {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
