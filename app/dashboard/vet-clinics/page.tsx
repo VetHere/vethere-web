@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,19 +22,20 @@ import {
 } from "@/components/ui/dialog";
 import { Star, ChevronRight } from "lucide-react";
 
-interface Clinic {
-  id: string;
-  name: string;
-  address: string;
-  phone: string;
-  description: string;
-  openHour: string;
-  closeHour: string;
-  image: string;
-  facilities: string;
-  schedule: string;
-  latitude: string;
-  longitude: string;
+interface Vet {
+  vet_id: string;
+  vet_name: string;
+  vet_description: string;
+  vet_rating: number;
+  vet_open_hour: string;
+  vet_close_hour: string;
+  vet_address: string;
+  vet_image?: string;
+  vet_detail: {
+    vet_phone_number: string;
+    vet_latitude: string;
+    vet_longitude: string;
+  };
 }
 
 interface Doctor {
@@ -48,15 +49,15 @@ interface Doctor {
 }
 
 export default function CombinedVetClinic() {
-  const [clinics, setClinics] = useState<Clinic[]>([]);
-  const [isOpen, setIsOpen] = useState(false);
-  const [currentClinic, setCurrentClinic] = useState<Clinic | null>(null);
-  const [selectedClinic, setSelectedClinic] = useState<Clinic | null>(null);
+  const [vets, setVets] = useState<Vet[]>([]);
+  const [selectedVet, setSelectedVet] = useState<Vet | null>(null);
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const fetchClinics = async () => {
+  const fetchVets = async () => {
     setIsLoading(true);
     setError(null);
 
@@ -75,25 +76,26 @@ export default function CombinedVetClinic() {
         },
       });
 
-      if (!response.ok) throw new Error("Failed to fetch clinics");
+      if (!response.ok) throw new Error("Failed to fetch vets");
 
       const data = await response.json();
       if (data.meta.success) {
-        const formattedClinics = data.data.map((clinic: any) => ({
-          id: clinic.vet_id,
-          name: clinic.vet_name,
-          address: clinic.vet_address,
-          phone: clinic.phone || "",
-          description: clinic.vet_description,
-          openHour: clinic.vet_open_hour,
-          closeHour: clinic.vet_close_hour,
-          image: clinic.vet_image,
-          facilities: clinic.facilities || "",
-          schedule: clinic.schedule || "Monday to Saturday",
-          latitude: clinic.latitude || "",
-          longitude: clinic.longitude || "",
+        const formattedClinics = data.data.map((vet: any) => ({
+          vet_id: vet.vet_id,
+          vet_name: vet.vet_name,
+          vet_address: vet.vet_address,
+          vet_description: vet.vet_description,
+          vet_open_hour: vet.vet_open_hour,
+          vet_close_hour: vet.vet_close_hour,
+          vet_image: vet.vet_image,
+          vet_rating: vet.vet_rating,
+          vet_detail: {
+            vet_phone_number: vet.vet_detail?.vet_phone_number,
+            vet_latitude: vet.vet_detail?.vet_latitude,
+            vet_longitude: vet.vet_detail?.vet_longitude,
+          },
         }));
-        setClinics(formattedClinics);
+        setVets(formattedClinics);
       } else {
         throw new Error(data.meta.message);
       }
@@ -104,7 +106,7 @@ export default function CombinedVetClinic() {
     }
   };
 
-  const fetchDoctors = async (clinicId: string) => {
+  const fetchDoctors = async (vet_id: string) => {
     setIsLoading(true);
     setError(null);
 
@@ -122,14 +124,14 @@ export default function CombinedVetClinic() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${adminToken}`,
         },
-        body: JSON.stringify({ vet_id: clinicId }),
+        body: JSON.stringify({ vet_id: vet_id }),
       });
 
       if (!response.ok) throw new Error("Failed to fetch doctors");
 
       const data = await response.json();
       if (data.meta.success) {
-        setDoctors(data.data);
+        setDoctors(data.data || []);
       } else {
         throw new Error(data.meta.message);
       }
@@ -141,57 +143,112 @@ export default function CombinedVetClinic() {
   };
 
   useEffect(() => {
-    fetchClinics();
+    fetchVets();
   }, []);
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const formData = new FormData(event.currentTarget);
-    const clinicData = {
-      id: currentClinic ? currentClinic.id : Date.now().toString(),
-      name: formData.get("name") as string,
-      address: formData.get("address") as string,
-      phone: formData.get("phone") as string,
-      description: formData.get("description") as string,
-      openHour: formData.get("openHour") as string,
-      closeHour: formData.get("closeHour") as string,
-      image: formData.get("image") as string,
-      facilities: formData.get("facilities") as string,
-      schedule: formData.get("schedule") as string,
-      latitude: formData.get("latitude") as string,
-      longitude: formData.get("longitude") as string,
-    };
-
-    if (currentClinic) {
-      setClinics(
-        clinics.map((clinic) =>
-          clinic.id === currentClinic.id ? clinicData : clinic
-        )
-      );
-    } else {
-      setClinics([...clinics, clinicData]);
+  const handleDelete = async (id: string) => {
+    const adminToken = localStorage.getItem("access_token");
+    if (!adminToken) {
+      setError("Admin access token is missing. Please log in.");
+      return;
     }
 
-    setIsOpen(false);
-    setCurrentClinic(null);
+    try {
+      const response = await fetch(`http://localhost:8000/vet/admin/${id}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${adminToken}`,
+        },
+      });
+
+      if (!response.ok) throw new Error("Failed to delete vet");
+
+      const data = await response.json();
+      if (data.meta.success) {
+        setVets(vets.filter((vet) => vet.vet_id !== id));
+      } else {
+        throw new Error(data.meta.message);
+      }
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "An error occurred while deleting"
+      );
+    }
   };
 
-  const handleEdit = (clinic: Clinic) => {
-    setCurrentClinic(clinic);
-    setIsOpen(true);
-  };
-
-  const handleDelete = (id: string) => {
-    setClinics(clinics.filter((clinic) => clinic.id !== id));
-  };
-
-  const handleClinicSelect = (clinic: Clinic) => {
-    if (selectedClinic?.id === clinic.id) {
-      setSelectedClinic(null);
+  const handleVetSelect = (vet: Vet) => {
+    if (selectedVet?.vet_id === vet.vet_id) {
+      setSelectedVet(null);
       setDoctors([]);
     } else {
-      setSelectedClinic(clinic);
-      fetchDoctors(clinic.id);
+      setSelectedVet(vet);
+      fetchDoctors(vet.vet_id);
+    }
+  };
+
+  const handleAddClinic = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setError(null);
+
+    const adminToken = localStorage.getItem("access_token");
+    if (!adminToken) {
+      setError("Admin access token is missing. Please log in.");
+      return;
+    }
+
+    const formData = new FormData(event.currentTarget);
+    const imageFile = fileInputRef.current?.files?.[0];
+
+    try {
+      // Convert file to ArrayBuffer
+      let fileArrayBuffer: ArrayBuffer | null = null;
+      if (imageFile) {
+        fileArrayBuffer = await imageFile.arrayBuffer();
+      }
+
+      // Construct payload with FormData and ArrayBuffer
+      const payload = {
+        vet_name: formData.get("vet_name"),
+        vet_address: formData.get("vet_address"),
+        vet_phone_number: formData.get("vet_phone_number"),
+        vet_description: formData.get("vet_description"),
+        vet_open_hour: formData.get("vet_open_hour"),
+        vet_close_hour: formData.get("vet_close_hour"),
+        vet_latitude: formData.get("vet_latitude"),
+        vet_longitude: formData.get("vet_longitude"),
+        vet_image: fileArrayBuffer
+          ? Array.from(new Uint8Array(fileArrayBuffer))
+          : null, // Convert ArrayBuffer to byte array
+      };
+
+      const response = await fetch("http://localhost:8000/vet/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${adminToken}`,
+        },
+        body: JSON.stringify(payload), // Send as JSON
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to add new clinic: ${errorText}`);
+      }
+
+      const data = await response.json();
+      if (data.meta.success) {
+        fetchVets(); // Refresh the list of vets
+        setIsAddDialogOpen(false);
+      } else {
+        throw new Error(data.meta.message);
+      }
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "An error occurred while adding new clinic"
+      );
     }
   };
 
@@ -199,122 +256,73 @@ export default function CombinedVetClinic() {
     <div className="container mx-auto p-4 space-y-8">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Vet Clinics</h1>
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
-            <Button onClick={() => setCurrentClinic(null)}>
-              Add New Clinic
-            </Button>
+            <Button>Add New Clinic</Button>
           </DialogTrigger>
           <DialogContent className="max-h-screen overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>
-                {currentClinic ? "Edit Clinic" : "Add New Clinic"}
-              </DialogTitle>
+              <DialogTitle>Add New Clinic</DialogTitle>
             </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleAddClinic} className="space-y-4">
               <div>
-                <Label htmlFor="name">Clinic Name</Label>
-                <Input
-                  id="name"
-                  name="name"
-                  defaultValue={currentClinic?.name || ""}
-                  required
-                />
+                <Label htmlFor="vet_name">Clinic Name</Label>
+                <Input id="vet_name" name="vet_name" required />
               </div>
               <div>
-                <Label htmlFor="address">Address</Label>
-                <Input
-                  id="address"
-                  name="address"
-                  defaultValue={currentClinic?.address || ""}
-                  required
-                />
+                <Label htmlFor="vet_address">Address</Label>
+                <Input id="vet_address" name="vet_address" required />
               </div>
               <div>
-                <Label htmlFor="phone">Phone</Label>
-                <Input
-                  id="phone"
-                  name="phone"
-                  defaultValue={currentClinic?.phone || ""}
-                  required
-                />
+                <Label htmlFor="vet_phone_number">Phone Number</Label>
+                <Input id="vet_phone_number" name="vet_phone_number" required />
               </div>
               <div>
-                <Label htmlFor="description">Description</Label>
+                <Label htmlFor="vet_description">Description</Label>
                 <Textarea
-                  id="description"
-                  name="description"
-                  defaultValue={currentClinic?.description || ""}
+                  id="vet_description"
+                  name="vet_description"
                   required
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="openHour">Open Hour</Label>
+                  <Label htmlFor="vet_open_hour">Open Hour</Label>
                   <Input
-                    id="openHour"
-                    name="openHour"
+                    id="vet_open_hour"
+                    name="vet_open_hour"
                     type="time"
-                    defaultValue={currentClinic?.openHour || ""}
                     required
                   />
                 </div>
                 <div>
-                  <Label htmlFor="closeHour">Close Hour</Label>
+                  <Label htmlFor="vet_close_hour">Close Hour</Label>
                   <Input
-                    id="closeHour"
-                    name="closeHour"
+                    id="vet_close_hour"
+                    name="vet_close_hour"
                     type="time"
-                    defaultValue={currentClinic?.closeHour || ""}
                     required
                   />
                 </div>
               </div>
               <div>
-                <Label htmlFor="image">Image URL</Label>
+                <Label htmlFor="vet_image">Clinic Image</Label>
                 <Input
-                  id="image"
-                  name="image"
-                  defaultValue={currentClinic?.image || ""}
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="facilities">Facilities</Label>
-                <Textarea
-                  id="facilities"
-                  name="facilities"
-                  defaultValue={currentClinic?.facilities || ""}
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="schedule">Schedule</Label>
-                <Input
-                  id="schedule"
-                  name="schedule"
-                  defaultValue={currentClinic?.schedule || ""}
-                  required
+                  id="vet_image"
+                  name="vet_image"
+                  type="file"
+                  accept="image/*"
+                  ref={fileInputRef}
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="latitude">Latitude</Label>
-                  <Input
-                    id="latitude"
-                    name="latitude"
-                    defaultValue={currentClinic?.latitude || ""}
-                    required
-                  />
+                  <Label htmlFor="vet_latitude">Latitude</Label>
+                  <Input id="vet_latitude" name="vet_latitude" required />
                 </div>
                 <div>
-                  <Label htmlFor="longitude">Longitude</Label>
-                  <Input
-                    id="longitude"
-                    name="longitude"
-                    defaultValue={currentClinic?.longitude || ""}
-                    required
-                  />
+                  <Label htmlFor="vet_longitude">Longitude</Label>
+                  <Input id="vet_longitude" name="vet_longitude" required />
                 </div>
               </div>
               <Button type="submit">Save</Button>
@@ -332,33 +340,28 @@ export default function CombinedVetClinic() {
             <TableRow>
               <TableHead>Clinic Name</TableHead>
               <TableHead>Address</TableHead>
-              <TableHead>Phone</TableHead>
               <TableHead>Open Hours</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {clinics.map((clinic) => (
-              <TableRow key={clinic.id}>
-                <TableCell>{clinic.name}</TableCell>
-                <TableCell>{clinic.address}</TableCell>
-                <TableCell>{clinic.phone}</TableCell>
+            {vets.map((vet) => (
+              <TableRow key={vet.vet_id}>
+                <TableCell>{vet.vet_name}</TableCell>
+                <TableCell>{vet.vet_address}</TableCell>
                 <TableCell>
-                  {clinic.openHour} - {clinic.closeHour}
+                  {vet.vet_open_hour} - {vet.vet_close_hour}
                 </TableCell>
                 <TableCell className="space-x-2">
-                  <Button variant="ghost" onClick={() => handleEdit(clinic)}>
-                    Edit
-                  </Button>
                   <Button
                     variant="ghost"
-                    onClick={() => handleDelete(clinic.id)}
+                    onClick={() => handleDelete(vet.vet_id)}
                   >
                     Delete
                   </Button>
                   <Button
                     variant="ghost"
-                    onClick={() => handleClinicSelect(clinic)}
+                    onClick={() => handleVetSelect(vet)}
                     className="flex items-center gap-1"
                   >
                     View Doctors
@@ -371,39 +374,41 @@ export default function CombinedVetClinic() {
         </Table>
       )}
 
-      {selectedClinic && (
+      {selectedVet && (
         <div className="mt-8">
           <h2 className="text-xl font-bold mb-4">
-            Doctors at {selectedClinic.name}
+            Doctors at {selectedVet.vet_name}
           </h2>
           {isLoading ? (
             <div>Loading doctors...</div>
           ) : error ? (
             <div className="text-red-500">Error: {error}</div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Doctor Name</TableHead>
-                  <TableHead>Specialization</TableHead>
-                  <TableHead>Rating</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {doctors.map((doctor) => (
-                  <TableRow key={doctor.doctor_id}>
-                    <TableCell>{doctor.doctor_name}</TableCell>
-                    <TableCell>
-                      {doctor.specialization.specialization_name}
-                    </TableCell>
-                    <TableCell className="flex items-center gap-1">
-                      {doctor.doctor_rating}
-                      <Star className="h-4 w-4 text-yellow-400" />
-                    </TableCell>
+            <>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Doctor Name</TableHead>
+                    <TableHead>Specialization</TableHead>
+                    <TableHead>Rating</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {doctors.map((doctor) => (
+                    <TableRow key={doctor.doctor_id}>
+                      <TableCell>{doctor.doctor_name}</TableCell>
+                      <TableCell>
+                        {doctor.specialization.specialization_name}
+                      </TableCell>
+                      <TableCell className="flex items-center gap-1">
+                        {doctor.doctor_rating}
+                        <Star className="h-4 w-4 text-yellow-400" />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </>
           )}
         </div>
       )}
