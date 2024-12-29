@@ -44,7 +44,7 @@ interface VetDetail {
 }
 
 export default function VetDetailPage() {
-  const { id } = useParams();
+  const { id } = useParams() as { id: string };
   const [vetDetail, setVetDetail] = useState<VetDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

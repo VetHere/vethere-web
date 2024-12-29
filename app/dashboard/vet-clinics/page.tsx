@@ -107,12 +107,13 @@ export default function CombinedVetClinic() {
     }
 
     try {
-      const response = await fetch(`http://localhost:8000/vet/admin/${id}`, {
+      const response = await fetch("http://localhost:8000/vet/admin", {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${adminToken}`,
         },
+        body: JSON.stringify({ vet_id: id }),
       });
 
       if (!response.ok) throw new Error("Failed to delete vet");
@@ -144,21 +145,24 @@ export default function CombinedVetClinic() {
       const form = event.currentTarget;
       const formData = new FormData();
 
-      // Get all form fields
       formData.append("vet_name", form.vet_name.value);
       formData.append("vet_address", form.vet_address.value);
       formData.append("vet_phone_number", form.vet_phone_number.value);
       formData.append("vet_description", form.vet_description.value);
-      formData.append("vet_open_hour", form.vet_open_hour.value);
-      formData.append("vet_close_hour", form.vet_close_hour.value);
+      formData.append("vet_open_hour", `${form.vet_open_hour.value}:00`);
+      formData.append("vet_close_hour", `${form.vet_close_hour.value}:00`);
       formData.append("vet_latitude", form.vet_latitude.value);
       formData.append("vet_longitude", form.vet_longitude.value);
 
-      // Handle image file
       const imageFile = fileInputRef.current?.files?.[0];
       if (imageFile) {
         formData.append("vet_image", imageFile);
       }
+
+      console.log("Form data being sent:");
+      formData.forEach((value, key) => {
+        console.log(`${key}:`, value);
+      });
 
       const response = await fetch("http://localhost:8000/vet/", {
         method: "POST",
@@ -175,9 +179,8 @@ export default function CombinedVetClinic() {
 
       const data = await response.json();
       if (data.meta.success) {
-        await fetchVets(); // Refresh the list
+        await fetchVets();
         setIsAddDialogOpen(false);
-        // Reset form
         form.reset();
         if (fileInputRef.current) {
           fileInputRef.current.value = "";
