@@ -21,6 +21,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Star, ChevronRight } from "lucide-react";
+import Link from "next/link";
 
 interface Vet {
   vet_id: string;
@@ -38,20 +39,8 @@ interface Vet {
   };
 }
 
-interface Doctor {
-  doctor_id: string;
-  doctor_name: string;
-  doctor_rating: number;
-  specialization: {
-    specialization_id: string;
-    specialization_name: string;
-  };
-}
-
 export default function CombinedVetClinic() {
   const [vets, setVets] = useState<Vet[]>([]);
-  const [selectedVet, setSelectedVet] = useState<Vet | null>(null);
-  const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -106,42 +95,6 @@ export default function CombinedVetClinic() {
     }
   };
 
-  const fetchDoctors = async (vet_id: string) => {
-    setIsLoading(true);
-    setError(null);
-
-    const adminToken = localStorage.getItem("access_token");
-    if (!adminToken) {
-      setError("Admin access token is missing. Please log in.");
-      setIsLoading(false);
-      return;
-    }
-
-    try {
-      const response = await fetch("http://localhost:8000/vet/doctors", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${adminToken}`,
-        },
-        body: JSON.stringify({ vet_id: vet_id }),
-      });
-
-      if (!response.ok) throw new Error("Failed to fetch doctors");
-
-      const data = await response.json();
-      if (data.meta.success) {
-        setDoctors(data.data || []);
-      } else {
-        throw new Error(data.meta.message);
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   useEffect(() => {
     fetchVets();
   }, []);
@@ -177,16 +130,6 @@ export default function CombinedVetClinic() {
     }
   };
 
-  const handleVetSelect = (vet: Vet) => {
-    if (selectedVet?.vet_id === vet.vet_id) {
-      setSelectedVet(null);
-      setDoctors([]);
-    } else {
-      setSelectedVet(vet);
-      fetchDoctors(vet.vet_id);
-    }
-  };
-
   const handleAddClinic = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError(null);
@@ -197,49 +140,48 @@ export default function CombinedVetClinic() {
       return;
     }
 
-    const formData = new FormData(event.currentTarget);
-    const imageFile = fileInputRef.current?.files?.[0];
-
     try {
-      // Convert file to ArrayBuffer
-      let fileArrayBuffer: ArrayBuffer | null = null;
-      if (imageFile) {
-        fileArrayBuffer = await imageFile.arrayBuffer();
-      }
+      const form = event.currentTarget;
+      const formData = new FormData();
 
-      // Construct payload with FormData and ArrayBuffer
-      const payload = {
-        vet_name: formData.get("vet_name"),
-        vet_address: formData.get("vet_address"),
-        vet_phone_number: formData.get("vet_phone_number"),
-        vet_description: formData.get("vet_description"),
-        vet_open_hour: formData.get("vet_open_hour"),
-        vet_close_hour: formData.get("vet_close_hour"),
-        vet_latitude: formData.get("vet_latitude"),
-        vet_longitude: formData.get("vet_longitude"),
-        vet_image: fileArrayBuffer
-          ? Array.from(new Uint8Array(fileArrayBuffer))
-          : null, // Convert ArrayBuffer to byte array
-      };
+      // Get all form fields
+      formData.append("vet_name", form.vet_name.value);
+      formData.append("vet_address", form.vet_address.value);
+      formData.append("vet_phone_number", form.vet_phone_number.value);
+      formData.append("vet_description", form.vet_description.value);
+      formData.append("vet_open_hour", form.vet_open_hour.value);
+      formData.append("vet_close_hour", form.vet_close_hour.value);
+      formData.append("vet_latitude", form.vet_latitude.value);
+      formData.append("vet_longitude", form.vet_longitude.value);
+
+      // Handle image file
+      const imageFile = fileInputRef.current?.files?.[0];
+      if (imageFile) {
+        formData.append("vet_image", imageFile);
+      }
 
       const response = await fetch("http://localhost:8000/vet/", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
           Authorization: `Bearer ${adminToken}`,
         },
-        body: JSON.stringify(payload), // Send as JSON
+        body: formData,
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Failed to add new clinic: ${errorText}`);
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to add clinic");
       }
 
       const data = await response.json();
       if (data.meta.success) {
-        fetchVets(); // Refresh the list of vets
+        await fetchVets(); // Refresh the list
         setIsAddDialogOpen(false);
+        // Reset form
+        form.reset();
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
       } else {
         throw new Error(data.meta.message);
       }
@@ -359,58 +301,17 @@ export default function CombinedVetClinic() {
                   >
                     Delete
                   </Button>
-                  <Button
-                    variant="ghost"
-                    onClick={() => handleVetSelect(vet)}
-                    className="flex items-center gap-1"
-                  >
-                    View Doctors
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
+                  <Link href={`/dashboard/vet-clinics/${vet.vet_id}`} passHref>
+                    <Button variant="ghost" className="flex items-center gap-1">
+                      View Details
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </Link>
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
-      )}
-
-      {selectedVet && (
-        <div className="mt-8">
-          <h2 className="text-xl font-bold mb-4">
-            Doctors at {selectedVet.vet_name}
-          </h2>
-          {isLoading ? (
-            <div>Loading doctors...</div>
-          ) : error ? (
-            <div className="text-red-500">Error: {error}</div>
-          ) : (
-            <>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Doctor Name</TableHead>
-                    <TableHead>Specialization</TableHead>
-                    <TableHead>Rating</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {doctors.map((doctor) => (
-                    <TableRow key={doctor.doctor_id}>
-                      <TableCell>{doctor.doctor_name}</TableCell>
-                      <TableCell>
-                        {doctor.specialization.specialization_name}
-                      </TableCell>
-                      <TableCell className="flex items-center gap-1">
-                        {doctor.doctor_rating}
-                        <Star className="h-4 w-4 text-yellow-400" />
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </>
-          )}
-        </div>
       )}
     </div>
   );
