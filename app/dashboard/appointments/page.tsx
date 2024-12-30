@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
 import {
   Table,
   TableBody,
@@ -11,209 +10,166 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
+
+type Appointment = {
+  appointment_id: string;
+  client_name: string;
+  pet_name: string;
+  appointment_status: string;
+  appointment_notes: string;
+  appointment_date: string;
+  appointment_time: string;
+};
 
 export default function AppointmentsPage() {
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(
-    new Date()
-  );
-  const [appointments, setAppointments] = useState([
-    {
-      id: 1,
-      date: new Date(),
-      startHour: "09:00",
-      endHour: "09:30",
-      petName: "Max",
-      ownerName: "John Doe",
-      doctor: "Dr. Smith",
-      status: "Confirmed",
-      notes: "Routine check-up.",
-    },
-    {
-      id: 2,
-      date: new Date(),
-      startHour: "10:00",
-      endHour: "10:30",
-      petName: "Bella",
-      ownerName: "Jane Smith",
-      doctor: "Dr. Johnson",
-      status: "Pending",
-      notes: "",
-    },
-    {
-      id: 3,
-      date: new Date(),
-      startHour: "11:00",
-      endHour: "11:45",
-      petName: "Charlie",
-      ownerName: "Bob Brown",
-      doctor: "Dr. Smith",
-      status: "Pending",
-      notes: "",
-    },
-    {
-      id: 4,
-      date: new Date(),
-      startHour: "14:00",
-      endHour: "14:30",
-      petName: "Luna",
-      ownerName: "Alice Green",
-      doctor: "Dr. Johnson",
-      status: "Confirmed",
-      notes: "Follow-up on surgery.",
-    },
-  ]);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const [isNotesDialogOpen, setIsNotesDialogOpen] = useState(false);
-  const [currentAppointment, setCurrentAppointment] = useState(null);
+  const fetchAppointments = async () => {
+    setIsLoading(true);
+    setError(null);
 
-  const handleDateSelect = (date: Date | undefined) => {
-    setSelectedDate(date);
-  };
+    const doctorToken = localStorage.getItem("access_token");
+    if (!doctorToken) {
+      setError("Admin access token is missing. Please log in.");
+      setAppointments([]); // Reset appointments
+      setIsLoading(false);
+      return;
+    }
 
-  const handleConfirmAppointment = (id: number) => {
-    setAppointments(
-      appointments.map((apt) =>
-        apt.id === id ? { ...apt, status: "Confirmed" } : apt
-      )
-    );
-  };
+    try {
+      const response = await fetch("http://localhost:8000/appointment/doctor", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${doctorToken}`,
+        },
+        body: JSON.stringify({
+          appointment_date: "2024-12-13", // Ensure valid format for the backend
+        }),
+      });
 
-  const handleEditNotes = (appointment: any) => {
-    setCurrentAppointment(appointment);
-    setIsNotesDialogOpen(true);
-  };
+      if (!response.ok) throw new Error("Failed to fetch appointments");
 
-  const handleSaveNotes = (event: any) => {
-    event.preventDefault();
-    const formData = new FormData(event.target);
-    const updatedNotes = formData.get("notes");
-
-    setAppointments(
-      appointments.map((apt) =>
-        apt.id === currentAppointment.id ? { ...apt, notes: updatedNotes } : apt
-      )
-    );
-
-    setIsNotesDialogOpen(false);
-    setCurrentAppointment(null);
-  };
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "Confirmed":
-        return <Badge className="bg-green-500">Confirmed</Badge>;
-      case "Pending":
-        return <Badge className="bg-yellow-500">Pending</Badge>;
-      default:
-        return <Badge className="bg-gray-500">{status}</Badge>;
+      const data = await response.json();
+      if (data.meta.success) {
+        setAppointments(data.data || []); // Set to an empty array if null
+      } else {
+        throw new Error(data.meta.message || "Unknown error occurred");
+      }
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "An unexpected error occurred"
+      );
+      setAppointments([]); // Reset appointments
+    } finally {
+      setIsLoading(false);
     }
   };
 
+  const handleStatusChange = async (
+    appointmentId: string,
+    newStatus: string
+  ) => {
+    const doctorToken = localStorage.getItem("access_token");
+    if (!doctorToken) {
+      setError("Admin access token is missing. Please log in.");
+      return;
+    }
+
+    try {
+      const response = await fetch("http://localhost:8000/appointment/doctor", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${doctorToken}`,
+        },
+        body: JSON.stringify({
+          appointment_id: appointmentId,
+          appointment_status: newStatus,
+        }),
+      });
+
+      if (!response.ok) throw new Error("Failed to update appointment status");
+
+      const data = await response.json();
+      if (!data.meta.success) {
+        throw new Error(data.meta.message);
+      }
+
+      await fetchAppointments();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An error occurred");
+    }
+  };
+
+  useEffect(() => {
+    fetchAppointments();
+  }, []);
+
   return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-bold">Appointments Schedule</h1>
-      <div className="flex space-x-4">
-        <div className="w-1/3">
-          <Calendar
-            mode="single"
-            selected={selectedDate}
-            onSelect={handleDateSelect}
-            className="rounded-md border"
-          />
-        </div>
-        <div className="w-2/3">
-          <h2 className="text-xl font-semibold mb-4">
-            Appointments for {selectedDate?.toDateString()}
-          </h2>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Start - End</TableHead>
-                <TableHead>Pet Name</TableHead>
-                <TableHead>Owner</TableHead>
-                <TableHead>Doctor</TableHead>
-                <TableHead>Notes</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {appointments.map((appointment) => (
-                <TableRow key={appointment.id}>
-                  <TableCell>
-                    {appointment.startHour} - {appointment.endHour}
-                  </TableCell>
-                  <TableCell>{appointment.petName}</TableCell>
-                  <TableCell>{appointment.ownerName}</TableCell>
-                  <TableCell>{appointment.doctor}</TableCell>
+    <div className="container mx-auto p-4 space-y-8">
+      <h1 className="text-2xl font-bold">Doctor Appointments</h1>
+
+      {isLoading && <div>Loading...</div>}
+      {error && <div className="text-red-500">Error: {error}</div>}
+
+      {!isLoading && !error && (
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Client Name</TableHead>
+              <TableHead>Pet Name</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Notes</TableHead>
+              <TableHead>Date</TableHead>
+              <TableHead>Time</TableHead>
+              <TableHead>Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {appointments.map((appointment) => {
+              const date = new Date(
+                appointment.appointment_date
+              ).toLocaleDateString(undefined, {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              });
+              const time = new Date(
+                appointment.appointment_time
+              ).toLocaleTimeString(undefined, {
+                hour: "2-digit",
+                minute: "2-digit",
+              });
+              const isCompleted = appointment.appointment_status === "Accepted";
+              return (
+                <TableRow key={appointment.appointment_id}>
+                  <TableCell>{appointment.client_name}</TableCell>
+                  <TableCell>{appointment.pet_name}</TableCell>
+                  <TableCell>{appointment.appointment_status}</TableCell>
+                  <TableCell>{appointment.appointment_notes}</TableCell>
+                  <TableCell>{date}</TableCell>
+                  <TableCell>{time}</TableCell>
                   <TableCell>
                     <Button
                       variant="outline"
-                      size="sm"
-                      onClick={() => handleEditNotes(appointment)}
+                      onClick={() =>
+                        handleStatusChange(
+                          appointment.appointment_id,
+                          isCompleted ? "Waiting" : "Accepted"
+                        )
+                      }
                     >
-                      Notes
+                      {isCompleted ? "Mark as Waiting" : "Mark as Completed"}
                     </Button>
                   </TableCell>
-                  <TableCell>{getStatusBadge(appointment.status)}</TableCell>
-                  <TableCell>
-                    <div className="flex space-x-2">
-                      {appointment.status === "Pending" && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() =>
-                            handleConfirmAppointment(appointment.id)
-                          }
-                        >
-                          Confirm
-                        </Button>
-                      )}
-                    </div>
-                  </TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      </div>
-
-      {currentAppointment && (
-        <Dialog open={isNotesDialogOpen} onOpenChange={setIsNotesDialogOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Edit Notes</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleSaveNotes}>
-              <div className="space-y-4">
-                <Textarea
-                  id="notes"
-                  name="notes"
-                  defaultValue={currentAppointment.notes}
-                  placeholder="Add notes about the appointment"
-                />
-                <div className="flex justify-end space-x-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setIsNotesDialogOpen(false)}
-                  >
-                    Cancel
-                  </Button>
-                  <Button type="submit">Save</Button>
-                </div>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
+              );
+            })}
+          </TableBody>
+        </Table>
       )}
     </div>
   );
