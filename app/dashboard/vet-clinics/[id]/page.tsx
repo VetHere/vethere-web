@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,7 +11,18 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Star } from "lucide-react";
+import { Star, Plus } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { RadioButton } from "@/components/ui/radio-button";
 
 interface VetDetail {
   vet_id: string;
@@ -43,53 +54,240 @@ interface VetDetail {
   }> | null;
 }
 
+interface Specialization {
+  specialization_id: string;
+  specialization_name: string;
+}
+
+interface Facility {
+  facility_id: string;
+  facility_name: string;
+}
+
 export default function VetDetailPage() {
   const { id } = useParams() as { id: string };
   const [vetDetail, setVetDetail] = useState<VetDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isAddDoctorOpen, setIsAddDoctorOpen] = useState(false);
+  const [isAddFacilityOpen, setIsAddFacilityOpen] = useState(false);
+  const [specializations, setSpecializations] = useState<Specialization[]>([]);
+  const [facilities, setFacilities] = useState<Facility[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const fetchVetDetail = async () => {
+    setIsLoading(true);
+    setError(null);
+
+    const adminToken = localStorage.getItem("access_token");
+    if (!adminToken) {
+      setError("Admin access token is missing. Please log in.");
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const response = await fetch("http://localhost:8000/vet/details", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${adminToken}`,
+        },
+        body: JSON.stringify({ vet_id: id }),
+      });
+
+      if (!response.ok) throw new Error("Failed to fetch vet details");
+
+      const result = await response.json();
+      if (result.meta.success) {
+        setVetDetail(result.data);
+      } else {
+        throw new Error(result.meta.message);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An error occurred");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchSpecializations = async () => {
+    const adminToken = localStorage.getItem("access_token");
+    if (!adminToken) {
+      setError("Admin access token is missing. Please log in.");
+      return;
+    }
+
+    try {
+      const response = await fetch("http://localhost:8000/specialization", {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${adminToken}`,
+        },
+      });
+
+      if (!response.ok) throw new Error("Failed to fetch specializations");
+
+      const result = await response.json();
+      if (result.meta.success) {
+        setSpecializations(result.data);
+      } else {
+        throw new Error(result.meta.message);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An error occurred");
+    }
+  };
+
+  const fetchFacilities = async () => {
+    const adminToken = localStorage.getItem("access_token");
+    if (!adminToken) {
+      setError("Admin access token is missing. Please log in.");
+      return;
+    }
+
+    try {
+      const response = await fetch("http://localhost:8000/facility", {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${adminToken}`,
+        },
+      });
+
+      if (!response.ok) throw new Error("Failed to fetch facilities");
+
+      const result = await response.json();
+      if (result.meta.success) {
+        setFacilities(result.data);
+      } else {
+        throw new Error(result.meta.message);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An error occurred");
+    }
+  };
 
   useEffect(() => {
-    const fetchVetDetail = async () => {
-      setIsLoading(true);
-      setError(null);
-
-      const adminToken = localStorage.getItem("access_token");
-      if (!adminToken) {
-        setError("Admin access token is missing. Please log in.");
-        setIsLoading(false);
-        return;
-      }
-
-      try {
-        const response = await fetch("http://localhost:8000/vet/details", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${adminToken}`,
-          },
-          body: JSON.stringify({ vet_id: id }),
-        });
-
-        if (!response.ok) throw new Error("Failed to fetch vet details");
-
-        const result = await response.json();
-        if (result.meta.success) {
-          setVetDetail(result.data);
-        } else {
-          throw new Error(result.meta.message);
-        }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "An error occurred");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     if (id) {
       fetchVetDetail();
+      fetchSpecializations();
+      fetchFacilities();
     }
   }, [id]);
+
+  const handleAddDoctor = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setError(null);
+
+    const adminToken = localStorage.getItem("access_token");
+    if (!adminToken) {
+      setError("Admin access token is missing. Please log in.");
+      return;
+    }
+
+    try {
+      const form = event.currentTarget;
+      const formData = new FormData();
+
+      formData.append("username", form.username.value);
+      formData.append("password", form.password.value);
+      formData.append("doctor_name", form.doctor_name.value);
+      formData.append("doctor_rating", form.doctor_rating.value);
+      formData.append("specialization_id", form.specialization.value);
+      formData.append("vet_id", id);
+
+      const imageFile = fileInputRef.current?.files?.[0];
+      if (imageFile) {
+        formData.append("doctor_image", imageFile);
+      }
+
+      console.log("Doctor form data being sent:");
+      formData.forEach((value, key) => {
+        console.log(`${key}:`, value);
+      });
+
+      const response = await fetch("http://localhost:8000/doctor/", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${adminToken}`,
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to add doctor");
+      }
+
+      const data = await response.json();
+      if (data.meta.success) {
+        await fetchVetDetail();
+        setIsAddDoctorOpen(false);
+        form.reset();
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
+      } else {
+        throw new Error(data.meta.message);
+      }
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "An error occurred while adding new doctor"
+      );
+    }
+  };
+
+  const handleAddFacility = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setError(null);
+
+    const adminToken = localStorage.getItem("access_token");
+    if (!adminToken) {
+      setError("Admin access token is missing. Please log in.");
+      return;
+    }
+
+    try {
+      const form = event.currentTarget;
+      const selectedFacilities = Array.from(form.facilities)
+        .filter((checkbox: HTMLInputElement) => checkbox.checked)
+        .map((checkbox: HTMLInputElement) => checkbox.value);
+
+      const response = await fetch("http://localhost:8000/vet/facility", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${adminToken}`,
+        },
+        body: JSON.stringify({
+          vet_id: id,
+          facility_ids: selectedFacilities,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to add facilities");
+      }
+
+      const data = await response.json();
+      if (data.meta.success) {
+        await fetchVetDetail();
+        setIsAddFacilityOpen(false);
+        form.reset();
+      } else {
+        throw new Error(data.meta.message);
+      }
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "An error occurred while adding facilities"
+      );
+    }
+  };
 
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
@@ -124,7 +322,77 @@ export default function VetDetailPage() {
           </div>
         </div>
         <div>
-          <h2 className="text-2xl font-bold mb-4">Doctors</h2>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-2xl font-bold">Doctors</h2>
+            <Dialog open={isAddDoctorOpen} onOpenChange={setIsAddDoctorOpen}>
+              <DialogTrigger asChild>
+                <Button className="flex items-center gap-2">
+                  <Plus className="h-4 w-4" /> Add Doctor
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Add New Doctor</DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleAddDoctor} className="space-y-4">
+                  <div>
+                    <Label htmlFor="username">Username</Label>
+                    <Input id="username" name="username" required />
+                  </div>
+                  <div>
+                    <Label htmlFor="password">Password</Label>
+                    <Input
+                      id="password"
+                      name="password"
+                      type="password"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="doctor_name">Doctor Name</Label>
+                    <Input id="doctor_name" name="doctor_name" required />
+                  </div>
+                  <div>
+                    <Label htmlFor="doctor_rating">Doctor Rating</Label>
+                    <Input
+                      id="doctor_rating"
+                      name="doctor_rating"
+                      type="number"
+                      min="0"
+                      max="5"
+                      step="0.1"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="doctor_image">Doctor Image</Label>
+                    <Input
+                      id="doctor_image"
+                      name="doctor_image"
+                      type="file"
+                      accept="image/*"
+                      ref={fileInputRef}
+                    />
+                  </div>
+                  <div>
+                    <Label>Specialization</Label>
+                    <div className="space-y-2">
+                      {specializations.map((spec) => (
+                        <RadioButton
+                          key={spec.specialization_id}
+                          id={`spec-${spec.specialization_id}`}
+                          name="specialization"
+                          value={spec.specialization_id}
+                          label={spec.specialization_name}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                  <Button type="submit">Add Doctor</Button>
+                </form>
+              </DialogContent>
+            </Dialog>
+          </div>
           {vetDetail.vet_doctors && vetDetail.vet_doctors.length > 0 ? (
             <Table>
               <TableHeader>
@@ -153,7 +421,47 @@ export default function VetDetailPage() {
             <p>No doctors information available</p>
           )}
 
-          <h2 className="text-2xl font-bold mt-8 mb-4">Facilities</h2>
+          <div className="flex justify-between items-center mt-8 mb-4">
+            <h2 className="text-2xl font-bold">Facilities</h2>
+            <Dialog
+              open={isAddFacilityOpen}
+              onOpenChange={setIsAddFacilityOpen}
+            >
+              <DialogTrigger asChild>
+                <Button className="flex items-center gap-2">
+                  <Plus className="h-4 w-4" /> Add Facility
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Add New Facility</DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleAddFacility} className="space-y-4">
+                  <div>
+                    <Label>Facilities</Label>
+                    <div className="space-y-2">
+                      {facilities.map((facility) => (
+                        <div
+                          key={facility.facility_id}
+                          className="flex items-center space-x-2"
+                        >
+                          <Checkbox
+                            id={`facility-${facility.facility_id}`}
+                            name="facilities"
+                            value={facility.facility_id}
+                          />
+                          <Label htmlFor={`facility-${facility.facility_id}`}>
+                            {facility.facility_name}
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <Button type="submit">Add Facilities</Button>
+                </form>
+              </DialogContent>
+            </Dialog>
+          </div>
           {vetDetail.vet_facilities && vetDetail.vet_facilities.length > 0 ? (
             <ul className="list-disc list-inside">
               {vetDetail.vet_facilities.map((facility) => (
