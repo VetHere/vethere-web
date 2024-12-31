@@ -30,7 +30,7 @@ export default function LoginPage() {
     };
 
     try {
-      const response = await fetch("http://localhost:8000/auth/login", {
+      const response = await fetch("http://localhost:8000/auth/doctor/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -100,14 +100,14 @@ export default function LoginPage() {
             </Button>
           </form>
         </CardContent>
-        <CardFooter className="flex justify-center">
+        {/* <CardFooter className="flex justify-center">
           <p>
             Don't have an account?{" "}
             <Link href="/register" className="text-blue-500 hover:underline">
               Register
             </Link>
           </p>
-        </CardFooter>
+        </CardFooter> */}
       </Card>
     </div>
   );

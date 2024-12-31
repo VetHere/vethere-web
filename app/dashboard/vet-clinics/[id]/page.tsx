@@ -43,6 +43,7 @@ interface VetDetail {
     doctor_id: string;
     doctor_name: string;
     doctor_rating: number;
+    doctor_image?: string;
     specialization: {
       specialization_id: string;
       specialization_name: string;
@@ -189,12 +190,12 @@ export default function VetDetailPage() {
       const form = event.currentTarget;
       const formData = new FormData();
 
+      formData.append("vet_id", id);
+      formData.append("specialization_id", form.specialization.value);
       formData.append("username", form.username.value);
       formData.append("password", form.password.value);
       formData.append("doctor_name", form.doctor_name.value);
       formData.append("doctor_rating", form.doctor_rating.value);
-      formData.append("specialization_id", form.specialization.value);
-      formData.append("vet_id", id);
 
       const imageFile = fileInputRef.current?.files?.[0];
       if (imageFile) {
@@ -203,8 +204,17 @@ export default function VetDetailPage() {
 
       console.log("Doctor form data being sent:");
       formData.forEach((value, key) => {
-        console.log(`${key}:`, value);
+        console.log(`${key}:`, value, `(${typeof value})`);
+        if (value instanceof File) {
+          console.log(`${key} is a File with name: ${value.name}`);
+        }
       });
+
+      const jsonObject: Record<string, any> = {};
+      formData.forEach((value, key) => {
+        jsonObject[key] = value instanceof File ? `File: ${value.name}` : value;
+      });
+      console.log("JSON representation:", JSON.stringify(jsonObject, null, 2));
 
       const response = await fetch("http://localhost:8000/doctor/", {
         method: "POST",

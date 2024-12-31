@@ -34,7 +34,7 @@ export default function DashboardLayout({
     <div className="flex h-screen bg-gray-100">
       <aside className="w-64 bg-white p-4">
         <nav className="space-y-2">
-          <Link href="/dashboard">
+          {/* <Link href="/dashboard">
             <Button variant="ghost" className="w-full justify-start">
               Dashboard
             </Button>
@@ -48,7 +48,7 @@ export default function DashboardLayout({
             <Button variant="ghost" className="w-full justify-start">
               Doctors
             </Button>
-          </Link>
+          </Link> */}
           <Link href="/dashboard/vet-clinics">
             <Button variant="ghost" className="w-full justify-start">
               Vet Clinics
