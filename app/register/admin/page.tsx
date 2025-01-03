@@ -15,8 +15,10 @@ import {
 } from "@/components/ui/card";
 import Link from "next/link";
 
-export default function LoginPage() {
+export default function AdminRegisterPage() {
   const [username, setUsername] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const router = useRouter();
@@ -26,11 +28,13 @@ export default function LoginPage() {
 
     const payload = {
       username,
+      first_name: firstName,
+      last_name: lastName,
       password,
     };
 
     try {
-      const response = await fetch("http://localhost:8000/auth/doctor/login", {
+      const response = await fetch("/api/auth/admin/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -44,9 +48,10 @@ export default function LoginPage() {
         localStorage.setItem("access_token", access_token);
         localStorage.setItem("refresh_token", refresh_token);
         localStorage.setItem("isLoggedIn", "true");
+        localStorage.setItem("userRole", "admin");
         router.push("/dashboard");
       } else {
-        let errorMessage = "Login failed";
+        let errorMessage = "Registration failed";
         try {
           const result = await response.json();
           errorMessage = result.message || errorMessage;
@@ -55,19 +60,17 @@ export default function LoginPage() {
         }
         setError(errorMessage);
       }
-    } catch {
+    } catch (err) {
       setError("Failed to connect to the server");
     }
   };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <Card className="w-[350px]">
+      <Card className="w-[400px]">
         <CardHeader>
-          <CardTitle>Login</CardTitle>
-          <CardDescription>
-            Enter your credentials to access your account
-          </CardDescription>
+          <CardTitle>Admin Registration</CardTitle>
+          <CardDescription>Create a new admin account</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit}>
@@ -83,11 +86,31 @@ export default function LoginPage() {
                 />
               </div>
               <div className="flex flex-col space-y-1.5">
+                <Label htmlFor="firstName">First Name</Label>
+                <Input
+                  id="firstName"
+                  placeholder="Enter your first name"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="flex flex-col space-y-1.5">
+                <Label htmlFor="lastName">Last Name</Label>
+                <Input
+                  id="lastName"
+                  placeholder="Enter your last name"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="flex flex-col space-y-1.5">
                 <Label htmlFor="password">Password</Label>
                 <Input
                   id="password"
                   type="password"
-                  placeholder="Enter your password"
+                  placeholder="Create a password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -96,10 +119,21 @@ export default function LoginPage() {
             </div>
             {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
             <Button className="w-full mt-4" type="submit">
-              Login
+              Register
             </Button>
           </form>
         </CardContent>
+        <CardFooter className="flex justify-between">
+          <Link
+            href="/login/admin"
+            className="text-sm text-gray-500 hover:underline"
+          >
+            Already have an account? Login
+          </Link>
+          <Link href="/login" className="text-sm text-gray-500 hover:underline">
+            Back to main login
+          </Link>
+        </CardFooter>
       </Card>
     </div>
   );

@@ -15,10 +15,8 @@ import {
 } from "@/components/ui/card";
 import Link from "next/link";
 
-export default function RegisterPage() {
+export default function DoctorLoginPage() {
   const [username, setUsername] = useState("");
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const router = useRouter();
@@ -28,13 +26,11 @@ export default function RegisterPage() {
 
     const payload = {
       username,
-      first_name: firstName,
-      last_name: lastName,
       password,
     };
 
     try {
-      const response = await fetch("api/auth/admin/register", {
+      const response = await fetch("http://localhost:8000/auth/doctor/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -48,6 +44,7 @@ export default function RegisterPage() {
         localStorage.setItem("access_token", access_token);
         localStorage.setItem("refresh_token", refresh_token);
         localStorage.setItem("isLoggedIn", "true");
+        localStorage.setItem("userRole", "doctor");
         router.push("/dashboard");
       } else {
         let errorMessage = "Login failed";
@@ -59,17 +56,19 @@ export default function RegisterPage() {
         }
         setError(errorMessage);
       }
-    } catch (err) {
+    } catch {
       setError("Failed to connect to the server");
     }
   };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <Card className="w-[400px]">
+      <Card className="w-[350px]">
         <CardHeader>
-          <CardTitle>Register</CardTitle>
-          <CardDescription>Create a new admin account</CardDescription>
+          <CardTitle>Doctor Login</CardTitle>
+          <CardDescription>
+            Enter your credentials to access your doctor account
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit}>
@@ -85,31 +84,11 @@ export default function RegisterPage() {
                 />
               </div>
               <div className="flex flex-col space-y-1.5">
-                <Label htmlFor="firstName">First Name</Label>
-                <Input
-                  id="firstName"
-                  placeholder="Enter your first name"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="flex flex-col space-y-1.5">
-                <Label htmlFor="lastName">Last Name</Label>
-                <Input
-                  id="lastName"
-                  placeholder="Enter your last name"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="flex flex-col space-y-1.5">
                 <Label htmlFor="password">Password</Label>
                 <Input
                   id="password"
                   type="password"
-                  placeholder="Create a password"
+                  placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -118,17 +97,20 @@ export default function RegisterPage() {
             </div>
             {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
             <Button className="w-full mt-4" type="submit">
-              Register
+              Login
             </Button>
           </form>
         </CardContent>
-        <CardFooter className="flex justify-center">
-          <p>
-            Already have an account?{" "}
-            <Link href="/login" className="text-blue-500 hover:underline">
-              Login
-            </Link>
-          </p>
+        <CardFooter className="flex justify-between">
+          <Link href="/login" className="text-sm text-gray-500 hover:underline">
+            Back to main login
+          </Link>
+          <Link
+            href="/login/admin"
+            className="text-sm text-gray-500 hover:underline"
+          >
+            Admin Login
+          </Link>
         </CardFooter>
       </Card>
     </div>

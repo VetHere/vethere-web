@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/table";
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/dist/style.css";
-import MedicalRecordForm from "./medicalrecordform";
+import MedicalRecordForm from "./MedicalRecordForm";
 
 type Appointment = {
   appointment_id: string;
