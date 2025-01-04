@@ -12,11 +12,12 @@ import {
 } from "@/components/ui/table";
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/dist/style.css";
-import MedicalRecordForm from "./MedicalRecordForm";
+import { Textarea } from "@/components/ui/textarea";
 
 type Appointment = {
   appointment_id: string;
   client_name: string;
+  pet_id: string;
   pet_name: string;
   appointment_status: string;
   appointment_notes: string;
@@ -31,6 +32,8 @@ export default function AppointmentsPage() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [selectedAppointment, setSelectedAppointment] =
     useState<Appointment | null>(null);
+  const [diagnosis, setDiagnosis] = useState("");
+  const [treatment, setTreatment] = useState("");
 
   const formatDateToLocal = (date: Date) => {
     const year = date.getFullYear();
@@ -136,6 +139,46 @@ export default function AppointmentsPage() {
     }
   };
 
+  const handleMedicalRecordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedAppointment) return;
+
+    const doctorToken = localStorage.getItem("access_token");
+    if (!doctorToken) {
+      setError("Admin access token is missing. Please log in.");
+      return;
+    }
+
+    try {
+      const response = await fetch("http://localhost:8000/medical-record/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${doctorToken}`,
+        },
+        body: JSON.stringify({
+          pet_id: selectedAppointment.pet_id,
+          diagnosis: diagnosis,
+          treatment: treatment,
+        }),
+      });
+
+      if (!response.ok) throw new Error("Failed to submit medical record");
+
+      const data = await response.json();
+      if (!data.meta.success) {
+        throw new Error(data.meta.message);
+      }
+
+      setDiagnosis("");
+      setTreatment("");
+      setSelectedAppointment(null);
+      await fetchAppointments(selectedDate);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An error occurred");
+    }
+  };
+
   useEffect(() => {
     console.log("Selected date changed to:", selectedDate);
     fetchAppointments(selectedDate);
@@ -215,13 +258,45 @@ export default function AppointmentsPage() {
             </Table>
           )}
           {selectedAppointment && (
-            <MedicalRecordForm
-              appointment={selectedAppointment}
-              onSubmit={() => {
-                setSelectedAppointment(null);
-                fetchAppointments(selectedDate);
-              }}
-            />
+            <form
+              onSubmit={handleMedicalRecordSubmit}
+              className="mt-8 space-y-4"
+            >
+              <h2 className="text-xl font-semibold">
+                Medical Record for {selectedAppointment.pet_name}
+              </h2>
+              <div>
+                <label
+                  htmlFor="diagnosis"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Diagnosis
+                </label>
+                <Textarea
+                  id="diagnosis"
+                  value={diagnosis}
+                  onChange={(e) => setDiagnosis(e.target.value)}
+                  required
+                  className="mt-1 block w-full"
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="treatment"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Treatment
+                </label>
+                <Textarea
+                  id="treatment"
+                  value={treatment}
+                  onChange={(e) => setTreatment(e.target.value)}
+                  required
+                  className="mt-1 block w-full"
+                />
+              </div>
+              <Button type="submit">Submit Medical Record</Button>
+            </form>
           )}
         </div>
       </div>
