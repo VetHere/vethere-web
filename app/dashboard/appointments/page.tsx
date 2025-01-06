@@ -327,7 +327,7 @@ export default function AppointmentsPage() {
                           onClick={() => setSelectedAppointment(appointment)}
                           className="mb-2"
                         >
-                          View Details
+                          Insert
                         </Button>
                         <Button
                           variant="outline"

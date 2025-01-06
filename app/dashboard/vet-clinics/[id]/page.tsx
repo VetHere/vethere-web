@@ -202,21 +202,7 @@ export default function VetDetailPage() {
         formData.append("doctor_image", imageFile);
       }
 
-      console.log("Doctor form data being sent:");
-      formData.forEach((value, key) => {
-        console.log(`${key}:`, value, `(${typeof value})`);
-        if (value instanceof File) {
-          console.log(`${key} is a File with name: ${value.name}`);
-        }
-      });
-
-      const jsonObject: Record<string, any> = {};
-      formData.forEach((value, key) => {
-        jsonObject[key] = value instanceof File ? `File: ${value.name}` : value;
-      });
-      console.log("JSON representation:", JSON.stringify(jsonObject, null, 2));
-
-      const response = await fetch("http://localhost:8000/doctor/", {
+      const response = await fetch("http://localhost:8000/doctor/create", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${adminToken}`,
@@ -224,13 +210,14 @@ export default function VetDetailPage() {
         body: formData,
       });
 
+      const responseData = await response.json();
+      console.log("API Response:", responseData);
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to add doctor");
+        throw new Error(responseData.message || "Failed to add doctor");
       }
 
-      const data = await response.json();
-      if (data.meta.success) {
+      if (responseData.meta.success) {
         await fetchVetDetail();
         setIsAddDoctorOpen(false);
         form.reset();
@@ -238,7 +225,7 @@ export default function VetDetailPage() {
           fileInputRef.current.value = "";
         }
       } else {
-        throw new Error(data.meta.message);
+        throw new Error(responseData.meta.message);
       }
     } catch (err) {
       setError(
