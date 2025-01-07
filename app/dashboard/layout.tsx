@@ -43,12 +43,12 @@ export default function DashboardLayout({
             <Button variant="ghost" className="w-full justify-start">
               Medical Records
             </Button>
-          </Link>
+          </Link> */}
           <Link href="/dashboard/doctors">
             <Button variant="ghost" className="w-full justify-start">
               Doctors
             </Button>
-          </Link> */}
+          </Link>
           <Link href="/dashboard/vet-clinics">
             <Button variant="ghost" className="w-full justify-start">
               Vet Clinics

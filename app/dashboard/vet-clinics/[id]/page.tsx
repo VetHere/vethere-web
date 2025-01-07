@@ -236,6 +236,43 @@ export default function VetDetailPage() {
     }
   };
 
+  const handleDeleteDoctor = async (doctorId: string) => {
+    const adminToken = sessionStorage.getItem("access_token");
+    if (!adminToken) {
+      setError("Admin access token is missing. Please log in.");
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:8000/doctor`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${adminToken}`,
+        },
+        body: JSON.stringify({ doctor_id: doctorId }),
+      });
+
+      const responseData = await response.json();
+
+      if (!response.ok) {
+        throw new Error(responseData.message || "Failed to delete doctor");
+      }
+
+      if (responseData.meta.success) {
+        await fetchVetDetail(); // Refresh the vet details after deletion
+      } else {
+        throw new Error(responseData.meta.message);
+      }
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "An error occurred while deleting the doctor"
+      );
+    }
+  };
+
   const handleAddFacility = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError(null);
@@ -409,6 +446,14 @@ export default function VetDetailPage() {
                     <TableCell className="flex items-center gap-1">
                       {doctor.doctor_rating}
                       <Star className="h-4 w-4 text-yellow-400" />
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        className="bg-red-500 text-white hover:bg-red-600"
+                        onClick={() => handleDeleteDoctor(doctor.doctor_id)}
+                      >
+                        Delete
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
