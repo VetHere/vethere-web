@@ -20,7 +20,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Star, ChevronRight } from "lucide-react";
+import { Star, ChevronRight, Edit2 } from "lucide-react";
 import Link from "next/link";
 
 interface Vet {
@@ -44,7 +44,10 @@ export default function CombinedVetClinic() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [selectedVet, setSelectedVet] = useState<Vet | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const editFileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchVets = async () => {
     setIsLoading(true);
@@ -197,6 +200,92 @@ export default function CombinedVetClinic() {
     }
   };
 
+  const handleEdit = (vet: Vet) => {
+    setSelectedVet(vet);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleUpdateClinic = async (
+    event: React.FormEvent<HTMLFormElement>
+  ) => {
+    event.preventDefault();
+    setError(null);
+
+    if (!selectedVet) return;
+
+    const adminToken = sessionStorage.getItem("access_token");
+    if (!adminToken) {
+      setError("Admin access token is missing. Please log in.");
+      return;
+    }
+
+    try {
+      const form = event.currentTarget;
+      const formData = new FormData();
+
+      // Only append fields that have changed
+      const fields = [
+        "vet_name",
+        "vet_address",
+        "vet_description",
+        "vet_phone_number",
+        "vet_latitude",
+        "vet_longitude",
+      ];
+
+      fields.forEach((field) => {
+        const value = (form[field] as HTMLInputElement).value;
+        if (value) formData.append(field, value);
+      });
+
+      // Handle time fields separately to add :00 for seconds
+      const openHour = (form.vet_open_hour as HTMLInputElement).value;
+      const closeHour = (form.vet_close_hour as HTMLInputElement).value;
+      if (openHour) formData.append("vet_open_hour", `${openHour}:00`);
+      if (closeHour) formData.append("vet_close_hour", `${closeHour}:00`);
+
+      // Handle image file if selected
+      const imageFile = editFileInputRef.current?.files?.[0];
+      if (imageFile) {
+        formData.append("vet_image", imageFile);
+      }
+
+      // Add vet_id to identify which record to update
+      formData.append("vet_id", selectedVet.vet_id);
+
+      const response = await fetch("http://localhost:8000/vet", {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${adminToken}`,
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to update clinic");
+      }
+
+      const data = await response.json();
+      if (data.meta.success) {
+        await fetchVets();
+        setIsEditDialogOpen(false);
+        setSelectedVet(null);
+        if (editFileInputRef.current) {
+          editFileInputRef.current.value = "";
+        }
+      } else {
+        throw new Error(data.meta.message);
+      }
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "An error occurred while updating clinic"
+      );
+    }
+  };
+
   return (
     <div className="container mx-auto p-4 space-y-8">
       <div className="flex justify-between items-center">
@@ -274,6 +363,104 @@ export default function CombinedVetClinic() {
             </form>
           </DialogContent>
         </Dialog>
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <DialogContent className="max-h-screen overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Edit Clinic</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleUpdateClinic} className="space-y-4">
+              <div>
+                <Label htmlFor="edit_vet_name">Clinic Name</Label>
+                <Input
+                  id="edit_vet_name"
+                  name="vet_name"
+                  defaultValue={selectedVet?.vet_name}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit_vet_address">Address</Label>
+                <Input
+                  id="edit_vet_address"
+                  name="vet_address"
+                  defaultValue={selectedVet?.vet_address}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit_vet_phone_number">Phone Number</Label>
+                <Input
+                  id="edit_vet_phone_number"
+                  name="vet_phone_number"
+                  defaultValue={selectedVet?.vet_detail.vet_phone_number}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit_vet_description">Description</Label>
+                <Textarea
+                  id="edit_vet_description"
+                  name="vet_description"
+                  defaultValue={selectedVet?.vet_description}
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="edit_vet_open_hour">Open Hour</Label>
+                  <Input
+                    id="edit_vet_open_hour"
+                    name="vet_open_hour"
+                    type="time"
+                    defaultValue={selectedVet?.vet_open_hour.slice(0, 5)}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit_vet_close_hour">Close Hour</Label>
+                  <Input
+                    id="edit_vet_close_hour"
+                    name="vet_close_hour"
+                    type="time"
+                    defaultValue={selectedVet?.vet_close_hour.slice(0, 5)}
+                    required
+                  />
+                </div>
+              </div>
+              <div>
+                <Label htmlFor="edit_vet_image">Clinic Image</Label>
+                <Input
+                  id="edit_vet_image"
+                  name="vet_image"
+                  type="file"
+                  accept="image/*"
+                  ref={editFileInputRef}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="edit_vet_latitude">Latitude</Label>
+                  <Input
+                    id="edit_vet_latitude"
+                    name="vet_latitude"
+                    defaultValue={selectedVet?.vet_detail.vet_latitude}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit_vet_longitude">Longitude</Label>
+                  <Input
+                    id="edit_vet_longitude"
+                    name="vet_longitude"
+                    defaultValue={selectedVet?.vet_detail.vet_longitude}
+                    required
+                  />
+                </div>
+              </div>
+              <Button type="submit">Update</Button>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
 
       {isLoading && <div>Loading...</div>}
@@ -303,6 +490,14 @@ export default function CombinedVetClinic() {
                     onClick={() => handleDelete(vet.vet_id)}
                   >
                     Delete
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    onClick={() => handleEdit(vet)}
+                    className="flex items-center gap-1"
+                  >
+                    <Edit2 className="h-4 w-4" />
+                    Edit
                   </Button>
                   <Link href={`/dashboard/vet-clinics/${vet.vet_id}`} passHref>
                     <Button variant="ghost" className="flex items-center gap-1">
