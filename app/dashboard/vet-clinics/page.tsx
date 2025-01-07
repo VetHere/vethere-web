@@ -50,7 +50,7 @@ export default function CombinedVetClinic() {
     setIsLoading(true);
     setError(null);
 
-    const adminToken = localStorage.getItem("access_token");
+    const adminToken = sessionStorage.getItem("access_token");
     if (!adminToken) {
       setError("Admin access token is missing. Please log in.");
       setIsLoading(false);
@@ -100,7 +100,7 @@ export default function CombinedVetClinic() {
   }, []);
 
   const handleDelete = async (id: string) => {
-    const adminToken = localStorage.getItem("access_token");
+    const adminToken = sessionStorage.getItem("access_token");
     if (!adminToken) {
       setError("Admin access token is missing. Please log in.");
       return;
@@ -135,7 +135,7 @@ export default function CombinedVetClinic() {
     event.preventDefault();
     setError(null);
 
-    const adminToken = localStorage.getItem("access_token");
+    const adminToken = sessionStorage.getItem("access_token");
     if (!adminToken) {
       setError("Admin access token is missing. Please log in.");
       return;
@@ -164,7 +164,7 @@ export default function CombinedVetClinic() {
         console.log(`${key}:`, value);
       });
 
-      const response = await fetch("http://localhost:8000/vet/", {
+      const response = await fetch("http://localhost:8000/vet", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${adminToken}`,

@@ -32,7 +32,7 @@ export default function DoctorList() {
       setIsLoading(true);
       setError(null);
 
-      const adminToken = localStorage.getItem("access_token");
+      const adminToken = sessionStorage.getItem("access_token");
 
       if (!adminToken) {
         setError("Admin access token is missing. Please log in.");

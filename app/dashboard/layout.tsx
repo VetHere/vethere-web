@@ -14,7 +14,7 @@ export default function DashboardLayout({
   const router = useRouter();
 
   useEffect(() => {
-    const loggedIn = localStorage.getItem("isLoggedIn") === "true";
+    const loggedIn = sessionStorage.getItem("isLoggedIn") === "true";
     setIsLoggedIn(loggedIn);
     if (!loggedIn) {
       router.push("/login");
@@ -22,7 +22,7 @@ export default function DashboardLayout({
   }, [router]);
 
   const handleLogout = () => {
-    localStorage.removeItem("isLoggedIn");
+    sessionStorage.removeItem("isLoggedIn");
     router.push("/login");
   };
 

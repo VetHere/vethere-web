@@ -45,10 +45,10 @@ export default function AdminRegisterPage() {
       if (response.ok) {
         const result = await response.json();
         const { access_token, refresh_token } = result.data;
-        localStorage.setItem("access_token", access_token);
-        localStorage.setItem("refresh_token", refresh_token);
-        localStorage.setItem("isLoggedIn", "true");
-        localStorage.setItem("userRole", "admin");
+        sessionStorage.setItem("access_token", access_token);
+        sessionStorage.setItem("refresh_token", refresh_token);
+        sessionStorage.setItem("isLoggedIn", "true");
+        sessionStorage.setItem("userRole", "admin");
         router.push("/dashboard");
       } else {
         let errorMessage = "Registration failed";

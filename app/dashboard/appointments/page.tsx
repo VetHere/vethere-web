@@ -54,7 +54,7 @@ export default function AppointmentsPage() {
     setIsLoading(true);
     setError(null);
 
-    const doctorToken = localStorage.getItem("access_token");
+    const doctorToken = sessionStorage.getItem("access_token");
     if (!doctorToken) {
       setError("Admin access token is missing. Please log in.");
       setAppointments([]);
@@ -106,7 +106,7 @@ export default function AppointmentsPage() {
     appointmentId: string,
     newStatus: string
   ) => {
-    const doctorToken = localStorage.getItem("access_token");
+    const doctorToken = sessionStorage.getItem("access_token");
     if (!doctorToken) {
       setError("Admin access token is missing. Please log in.");
       return;
@@ -164,7 +164,7 @@ export default function AppointmentsPage() {
     e.preventDefault();
     if (!selectedAppointment) return;
 
-    const doctorToken = localStorage.getItem("access_token");
+    const doctorToken = sessionStorage.getItem("access_token");
     if (!doctorToken) {
       setError("Admin access token is missing. Please log in.");
       return;
@@ -200,7 +200,7 @@ export default function AppointmentsPage() {
   };
 
   const fetchVaccines = async () => {
-    const doctorToken = localStorage.getItem("access_token");
+    const doctorToken = sessionStorage.getItem("access_token");
     if (!doctorToken) {
       setError("Admin access token is missing. Please log in.");
       return;
@@ -230,7 +230,7 @@ export default function AppointmentsPage() {
     e.preventDefault();
     if (!selectedAppointment || !selectedVaccine) return;
 
-    const doctorToken = localStorage.getItem("access_token");
+    const doctorToken = sessionStorage.getItem("access_token");
     if (!doctorToken) {
       setError("Admin access token is missing. Please log in.");
       return;
