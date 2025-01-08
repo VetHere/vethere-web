@@ -1,15 +1,25 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioButton } from "@/components/ui/radio-button";
+import { Star } from "lucide-react";
 
 interface Doctor {
   doctor_id: string;
   doctor_name: string;
+  doctor_rating: number;
+  doctor_image?: string;
   specialization: {
     specialization_id: string;
     specialization_name: string;
@@ -21,66 +31,59 @@ interface Specialization {
   specialization_name: string;
 }
 
-export default function EditDoctorPage() {
-  const { id } = useParams() as { id: string };
-  const router = useRouter();
+export default function DoctorProfilePage() {
   const [doctor, setDoctor] = useState<Doctor | null>(null);
   const [specializations, setSpecializations] = useState<Specialization[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    fetchDoctor();
-    fetchSpecializations();
-  }, [id]);
-
-  const fetchDoctor = async () => {
+  const fetchDoctorInfo = async () => {
     setIsLoading(true);
     setError(null);
 
-    const adminToken = sessionStorage.getItem("access_token");
-    if (!adminToken) {
-      setError("Admin access token is missing. Please log in.");
+    const doctorToken = sessionStorage.getItem("access_token");
+    if (!doctorToken) {
+      setError("Access token is missing. Please log in.");
       setIsLoading(false);
       return;
     }
 
     try {
-      const response = await fetch(`http://localhost:8000/doctor/${id}`, {
+      const response = await fetch("http://localhost:8000/doctor", {
         headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${adminToken}`,
+          Authorization: `Bearer ${doctorToken}`,
         },
       });
 
-      if (!response.ok) throw new Error("Failed to fetch doctor details");
+      if (!response.ok) throw new Error("Failed to fetch doctor information");
 
       const result = await response.json();
       if (result.meta.success) {
         setDoctor(result.data);
       } else {
-        throw new Error(result.meta.message);
+        throw new Error(result.meta.message || "Unknown error occurred");
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
+      console.error("Error fetching doctor info:", err);
     } finally {
       setIsLoading(false);
     }
   };
 
   const fetchSpecializations = async () => {
-    const adminToken = sessionStorage.getItem("access_token");
-    if (!adminToken) {
-      setError("Admin access token is missing. Please log in.");
+    const doctorToken = sessionStorage.getItem("access_token");
+    if (!doctorToken) {
+      setError("Access token is missing. Please log in.");
       return;
     }
 
     try {
       const response = await fetch("http://localhost:8000/specialization", {
         headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${adminToken}`,
+          Authorization: `Bearer ${doctorToken}`,
         },
       });
 
@@ -90,12 +93,18 @@ export default function EditDoctorPage() {
       if (result.meta.success) {
         setSpecializations(result.data);
       } else {
-        throw new Error(result.meta.message);
+        throw new Error(result.meta.message || "Unknown error occurred");
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
+      console.error("Error fetching specializations:", err);
     }
   };
+
+  useEffect(() => {
+    fetchDoctorInfo();
+    fetchSpecializations();
+  }, []);
 
   const handleUpdateDoctor = async (
     event: React.FormEvent<HTMLFormElement>
@@ -103,9 +112,9 @@ export default function EditDoctorPage() {
     event.preventDefault();
     setError(null);
 
-    const adminToken = sessionStorage.getItem("access_token");
-    if (!adminToken) {
-      setError("Admin access token is missing. Please log in.");
+    const doctorToken = sessionStorage.getItem("access_token");
+    if (!doctorToken) {
+      setError("Access token is missing. Please log in.");
       return;
     }
 
@@ -113,23 +122,36 @@ export default function EditDoctorPage() {
       const form = event.currentTarget;
       const formData = new FormData();
 
-      formData.append("doctor_id", id);
-      formData.append("specialization_id", form.specialization.value);
-      formData.append("doctor_name", form.doctor_name.value);
-
-      if (form.password.value) {
-        formData.append("password", form.password.value);
-      }
-
+      // Only append values that have been changed
+      const doctorName = form.doctor_name.value;
+      const password = form.password.value;
+      const specializationId = (form.specialization as HTMLInputElement)?.value;
       const imageFile = fileInputRef.current?.files?.[0];
+
+      // Append only non-empty values
+      if (doctorName.trim()) {
+        formData.append("doctor_name", doctorName);
+      }
+      if (password.trim()) {
+        formData.append("password", password);
+      }
+      if (specializationId) {
+        formData.append("specialization_id", specializationId);
+      }
       if (imageFile) {
         formData.append("doctor_image", imageFile);
       }
 
-      const response = await fetch(`http://localhost:8000/doctor/update`, {
+      // Only proceed if there are actual changes
+      if ([...formData.entries()].length === 0) {
+        setIsUpdateDialogOpen(false);
+        return;
+      }
+
+      const response = await fetch("http://localhost:8000/doctor", {
         method: "PATCH",
         headers: {
-          Authorization: `Bearer ${adminToken}`,
+          Authorization: `Bearer ${doctorToken}`,
         },
         body: formData,
       });
@@ -137,76 +159,138 @@ export default function EditDoctorPage() {
       const responseData = await response.json();
 
       if (!response.ok) {
-        throw new Error(responseData.message || "Failed to update doctor");
+        throw new Error(
+          responseData.meta.message || "Failed to update doctor information"
+        );
       }
 
       if (responseData.meta.success) {
-        router.push("/doctors"); // Redirect to doctors list page
+        await fetchDoctorInfo();
+        setIsUpdateDialogOpen(false);
+        form.reset();
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
       } else {
-        throw new Error(responseData.meta.message);
+        throw new Error(responseData.meta.message || "Unknown error occurred");
       }
     } catch (err) {
       setError(
         err instanceof Error
           ? err.message
-          : "An error occurred while updating doctor"
+          : "An error occurred while updating information"
       );
+      console.error("Error updating doctor:", err);
     }
   };
 
-  if (isLoading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error}</div>;
-  if (!doctor) return <div>No doctor details found</div>;
+  if (isLoading) return <div className="container mx-auto p-4">Loading...</div>;
+  if (error)
+    return (
+      <div className="container mx-auto p-4 text-red-500">Error: {error}</div>
+    );
+  if (!doctor)
+    return (
+      <div className="container mx-auto p-4">No doctor information found</div>
+    );
 
   return (
-    <div className="container mx-auto p-4 space-y-8">
-      <h1 className="text-3xl font-bold">Edit Doctor: {doctor.doctor_name}</h1>
-      <form onSubmit={handleUpdateDoctor} className="space-y-4">
-        <div>
-          <Label htmlFor="doctor_name">Doctor Name</Label>
-          <Input
-            id="doctor_name"
-            name="doctor_name"
-            defaultValue={doctor.doctor_name}
-            required
-          />
-        </div>
-        <div>
-          <Label htmlFor="password">
-            New Password (leave blank to keep current)
-          </Label>
-          <Input id="password" name="password" type="password" />
-        </div>
-        <div>
-          <Label htmlFor="doctor_image">Doctor Image</Label>
-          <Input
-            id="doctor_image"
-            name="doctor_image"
-            type="file"
-            accept="image/*"
-            ref={fileInputRef}
-          />
-        </div>
-        <div>
-          <Label>Specialization</Label>
-          <div className="space-y-2">
-            {specializations.map((spec) => (
-              <RadioButton
-                key={spec.specialization_id}
-                id={`spec-${spec.specialization_id}`}
-                name="specialization"
-                value={spec.specialization_id}
-                label={spec.specialization_name}
-                defaultChecked={
-                  spec.specialization_id ===
-                  doctor.specialization.specialization_id
-                }
-              />
-            ))}
+    <div className="container mx-auto p-4">
+      <Card>
+        <CardHeader>
+          <CardTitle>Doctor Profile</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid md:grid-cols-2 gap-8">
+            <div>
+              {doctor.doctor_image && (
+                <img
+                  src={doctor.doctor_image}
+                  alt={doctor.doctor_name}
+                  className="w-full h-64 object-cover rounded-lg mb-4"
+                />
+              )}
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-lg font-semibold">Name</h3>
+                  <p>{doctor.doctor_name}</p>
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold">Specialization</h3>
+                  <p>{doctor.specialization.specialization_name}</p>
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold">Rating</h3>
+                  <p className="flex items-center gap-2">
+                    {doctor.doctor_rating}
+                    <Star className="h-4 w-4 text-yellow-400" />
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div>
+              <Dialog
+                open={isUpdateDialogOpen}
+                onOpenChange={setIsUpdateDialogOpen}
+              >
+                <DialogTrigger asChild>
+                  <Button className="w-full">Update Profile</Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Update Profile</DialogTitle>
+                  </DialogHeader>
+                  <form onSubmit={handleUpdateDoctor} className="space-y-4">
+                    <div>
+                      <Label htmlFor="doctor_name">Name (Optional)</Label>
+                      <Input
+                        id="doctor_name"
+                        name="doctor_name"
+                        defaultValue={doctor.doctor_name}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="password">New Password (Optional)</Label>
+                      <Input id="password" name="password" type="password" />
+                    </div>
+                    <div>
+                      <Label htmlFor="doctor_image">
+                        Profile Image (Optional)
+                      </Label>
+                      <Input
+                        id="doctor_image"
+                        name="doctor_image"
+                        type="file"
+                        accept="image/*"
+                        ref={fileInputRef}
+                      />
+                    </div>
+                    <div>
+                      <Label>Specialization (Optional)</Label>
+                      <div className="space-y-2">
+                        {specializations.map((spec) => (
+                          <RadioButton
+                            key={spec.specialization_id}
+                            id={`spec-${spec.specialization_id}`}
+                            name="specialization"
+                            value={spec.specialization_id}
+                            defaultChecked={
+                              spec.specialization_id ===
+                              doctor.specialization.specialization_id
+                            }
+                            label={spec.specialization_name}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                    <Button type="submit">Save Changes</Button>
+                  </form>
+                </DialogContent>
+              </Dialog>
+            </div>
           </div>
-        </div>
-        <Button type="submit">Update Doctor</Button>
-      </form>
+        </CardContent>
+      </Card>
     </div>
   );
 }
