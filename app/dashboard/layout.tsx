@@ -59,6 +59,11 @@ export default function DashboardLayout({
               Appointments
             </Button>
           </Link>
+          <Link href="/dashboard/admin-appointments">
+            <Button variant="ghost" className="w-full justify-start">
+              Admin Appointments
+            </Button>
+          </Link>
           <Button
             variant="ghost"
             className="w-full justify-start text-red-500"

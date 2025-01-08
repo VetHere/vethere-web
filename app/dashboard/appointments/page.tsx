@@ -31,7 +31,7 @@ type Vaccine = {
   vaccine_name: string;
 };
 
-export default function AppointmentsPage() {
+export default function AdminAppointmentPage() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
