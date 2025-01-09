@@ -13,7 +13,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioButton } from "@/components/ui/radio-button";
-import { Star } from "lucide-react";
 
 interface Doctor {
   doctor_id: string;
@@ -122,13 +121,11 @@ export default function DoctorProfilePage() {
       const form = event.currentTarget;
       const formData = new FormData();
 
-      // Only append values that have been changed
       const doctorName = form.doctor_name.value;
       const password = form.password.value;
       const specializationId = (form.specialization as HTMLInputElement)?.value;
       const imageFile = fileInputRef.current?.files?.[0];
 
-      // Append only non-empty values
       if (doctorName.trim()) {
         formData.append("doctor_name", doctorName);
       }
@@ -142,7 +139,6 @@ export default function DoctorProfilePage() {
         formData.append("doctor_image", imageFile);
       }
 
-      // Only proceed if there are actual changes
       if ([...formData.entries()].length === 0) {
         setIsUpdateDialogOpen(false);
         return;

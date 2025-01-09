@@ -260,7 +260,7 @@ export default function VetDetailPage() {
       }
 
       if (responseData.meta.success) {
-        await fetchVetDetail(); // Refresh the vet details after deletion
+        await fetchVetDetail();
       } else {
         throw new Error(responseData.meta.message);
       }
@@ -286,8 +286,8 @@ export default function VetDetailPage() {
     try {
       const form = event.currentTarget;
       const selectedFacilities = Array.from(form.facilities)
-        .filter((checkbox: HTMLInputElement) => checkbox.checked)
-        .map((checkbox: HTMLInputElement) => checkbox.value);
+        .filter((checkbox) => (checkbox as HTMLInputElement).checked)
+        .map((checkbox) => (checkbox as HTMLInputElement).value);
 
       const response = await fetch("http://localhost:8000/vet/facility", {
         method: "PATCH",

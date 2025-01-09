@@ -132,7 +132,6 @@ export default function AdminAppointmentPage() {
         throw new Error(data.meta.message);
       }
 
-      // Update the appointment status in the local state
       setAppointments((prevAppointments) =>
         prevAppointments.map((appointment) =>
           appointment.appointment_id === appointmentId
@@ -141,7 +140,6 @@ export default function AdminAppointmentPage() {
         )
       );
 
-      // If the status is changed to "Accepted", set the selected appointment
       if (newStatus === "Accepted") {
         const appointment = appointments.find(
           (a) => a.appointment_id === appointmentId

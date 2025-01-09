@@ -27,7 +27,7 @@ export default function DashboardLayout({
   };
 
   if (!isLoggedIn) {
-    return null; // or a loading spinner
+    return null;
   }
 
   return (

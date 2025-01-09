@@ -20,7 +20,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Star, ChevronRight, Edit2 } from "lucide-react";
+import { ChevronRight, Edit2 } from "lucide-react";
 import Link from "next/link";
 
 interface Vet {
@@ -225,7 +225,6 @@ export default function CombinedVetClinic() {
       const form = event.currentTarget;
       const formData = new FormData();
 
-      // Only append fields that have changed
       const fields = [
         "vet_name",
         "vet_address",
@@ -240,19 +239,16 @@ export default function CombinedVetClinic() {
         if (value) formData.append(field, value);
       });
 
-      // Handle time fields separately to add :00 for seconds
       const openHour = (form.vet_open_hour as HTMLInputElement).value;
       const closeHour = (form.vet_close_hour as HTMLInputElement).value;
       if (openHour) formData.append("vet_open_hour", `${openHour}:00`);
       if (closeHour) formData.append("vet_close_hour", `${closeHour}:00`);
 
-      // Handle image file if selected
       const imageFile = editFileInputRef.current?.files?.[0];
       if (imageFile) {
         formData.append("vet_image", imageFile);
       }
 
-      // Add vet_id to identify which record to update
       formData.append("vet_id", selectedVet.vet_id);
 
       const response = await fetch("http://localhost:8000/vet", {
