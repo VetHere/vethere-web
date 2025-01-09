@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -76,7 +76,7 @@ export default function VetDetailPage() {
   const [facilities, setFacilities] = useState<Facility[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const fetchVetDetail = async () => {
+  const fetchVetDetail = useCallback(async () => {
     setIsLoading(true);
     setError(null);
 
@@ -110,7 +110,15 @@ export default function VetDetailPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    if (id) {
+      fetchVetDetail();
+      fetchSpecializations();
+      fetchFacilities();
+    }
+  }, [id, fetchVetDetail]);
 
   const fetchSpecializations = async () => {
     const adminToken = sessionStorage.getItem("access_token");

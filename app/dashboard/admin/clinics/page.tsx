@@ -72,7 +72,7 @@ export default function CombinedVetClinic() {
 
       const data = await response.json();
       if (data.meta.success) {
-        const formattedClinics = data.data.map((vet: any) => ({
+        const formattedClinics = data.data.map((vet: Vet) => ({
           vet_id: vet.vet_id,
           vet_name: vet.vet_name,
           vet_address: vet.vet_address,
