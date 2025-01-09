@@ -77,7 +77,7 @@ export default function AdminAppointmentPage() {
 
       const data = await response.json();
       if (data.meta.success) {
-        setVets(data.data);
+        setVets(data.data || []); // Handle empty vet list gracefully
       } else {
         throw new Error(data.meta.message);
       }

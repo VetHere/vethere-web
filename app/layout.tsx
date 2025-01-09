@@ -13,15 +13,6 @@ export default function RootLayout({
   const router = useRouter();
   const pathname = usePathname();
 
-  // useEffect(() => {
-  //   const loggedIn = localStorage.getItem("isLoggedIn") === "true";
-  //   setIsLoggedIn(loggedIn);
-
-  //   if (!loggedIn && pathname !== "/login" && pathname !== "/register") {
-  //     router.push("/login");
-  //   }
-  // }, [router, pathname]);
-
   return (
     <html lang="en">
       <body>{children}</body>

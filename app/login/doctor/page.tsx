@@ -45,7 +45,7 @@ export default function DoctorLoginPage() {
         sessionStorage.setItem("refresh_token", refresh_token);
         sessionStorage.setItem("isLoggedIn", "true");
         sessionStorage.setItem("userRole", "doctor");
-        router.push("/dashboard");
+        router.push("/dashboard/doctor");
       } else {
         let errorMessage = "Login failed";
         try {

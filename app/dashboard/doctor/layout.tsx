@@ -34,34 +34,14 @@ export default function DashboardLayout({
     <div className="flex h-screen bg-gray-100">
       <aside className="w-64 bg-white p-4">
         <nav className="space-y-2">
-          {/* <Link href="/dashboard">
-            <Button variant="ghost" className="w-full justify-start">
-              Dashboard
-            </Button>
-          </Link>
-          <Link href="/dashboard/medical-records">
-            <Button variant="ghost" className="w-full justify-start">
-              Medical Records
-            </Button>
-          </Link> */}
-          <Link href="/dashboard/doctors">
-            <Button variant="ghost" className="w-full justify-start">
-              Doctors
-            </Button>
-          </Link>
-          <Link href="/dashboard/vet-clinics">
-            <Button variant="ghost" className="w-full justify-start">
-              Vet Clinics
-            </Button>
-          </Link>
-          <Link href="/dashboard/appointments">
+          <Link href="/dashboard/doctor/appointments">
             <Button variant="ghost" className="w-full justify-start">
               Appointments
             </Button>
           </Link>
-          <Link href="/dashboard/admin-appointments">
+          <Link href="/dashboard/doctor/info">
             <Button variant="ghost" className="w-full justify-start">
-              Admin Appointments
+              Information
             </Button>
           </Link>
           <Button

@@ -49,7 +49,7 @@ export default function AdminRegisterPage() {
         sessionStorage.setItem("refresh_token", refresh_token);
         sessionStorage.setItem("isLoggedIn", "true");
         sessionStorage.setItem("userRole", "admin");
-        router.push("/dashboard");
+        router.push("/dashboard/admin");
       } else {
         let errorMessage = "Registration failed";
         try {

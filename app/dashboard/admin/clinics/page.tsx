@@ -118,6 +118,8 @@ export default function CombinedVetClinic() {
         },
         body: JSON.stringify({ vet_id: id }),
       });
+      const responseData = await response.json();
+      console.log("Response:", responseData);
 
       if (!response.ok) throw new Error("Failed to delete vet");
 
@@ -499,7 +501,10 @@ export default function CombinedVetClinic() {
                     <Edit2 className="h-4 w-4" />
                     Edit
                   </Button>
-                  <Link href={`/dashboard/vet-clinics/${vet.vet_id}`} passHref>
+                  <Link
+                    href={`/dashboard/admin/clinics/${vet.vet_id}`}
+                    passHref
+                  >
                     <Button variant="ghost" className="flex items-center gap-1">
                       View Details
                       <ChevronRight className="h-4 w-4" />
