@@ -51,16 +51,10 @@ export default function AdminRegisterPage() {
         sessionStorage.setItem("userRole", "admin");
         router.push("/dashboard/admin");
       } else {
-        let errorMessage = "Registration failed";
-        try {
-          const result = await response.json();
-          errorMessage = result.message || errorMessage;
-        } catch {
-          errorMessage = "An unexpected error occurred";
-        }
-        setError(errorMessage);
+        const result = await response.json();
+        setError(result.message || "Registration failed");
       }
-    } catch (err) {
+    } catch {
       setError("Failed to connect to the server");
     }
   };
