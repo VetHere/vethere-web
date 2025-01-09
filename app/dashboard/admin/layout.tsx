@@ -36,7 +36,7 @@ export default function DashboardLayout({
         <nav className="space-y-2">
           <Link href="/dashboard/admin/appointments">
             <Button variant="ghost" className="w-full justify-start">
-              Doctors
+              Appointments
             </Button>
           </Link>
           <Link href="/dashboard/admin/clinics">
