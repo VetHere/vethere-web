@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Table,
   TableBody,
@@ -59,7 +59,7 @@ export default function AdminAppointmentPage() {
     return `${year}-${month}-${day}`;
   };
 
-  const fetchVets = async () => {
+  const fetchVets = useCallback(async () => {
     const adminToken = sessionStorage.getItem("access_token");
     if (!adminToken) {
       setError("Admin access token is missing. Please log in.");
@@ -84,9 +84,9 @@ export default function AdminAppointmentPage() {
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
     }
-  };
+  }, []);
 
-  const fetchDoctors = async (vetId: string) => {
+  const fetchDoctors = useCallback(async (vetId: string) => {
     const adminToken = sessionStorage.getItem("access_token");
     if (!adminToken) {
       setError("Admin access token is missing. Please log in.");
@@ -114,9 +114,9 @@ export default function AdminAppointmentPage() {
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
     }
-  };
+  }, []);
 
-  const fetchAppointments = async () => {
+  const fetchAppointments = useCallback(async () => {
     if (!selectedDoctor) return;
 
     setIsLoading(true);
@@ -163,24 +163,24 @@ export default function AdminAppointmentPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [selectedDoctor, selectedDate]);
 
   useEffect(() => {
     fetchVets();
-  }, []);
+  }, [fetchVets]);
 
   useEffect(() => {
     if (selectedVet) {
       fetchDoctors(selectedVet);
       setSelectedDoctor("");
     }
-  }, [selectedVet]);
+  }, [selectedVet, fetchDoctors]);
 
   useEffect(() => {
     if (selectedDoctor) {
       fetchAppointments();
     }
-  }, [selectedDoctor, selectedDate]);
+  }, [selectedDoctor, selectedDate, fetchAppointments]);
 
   return (
     <div className="container mx-auto p-4 space-y-8">

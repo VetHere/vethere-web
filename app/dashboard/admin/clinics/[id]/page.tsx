@@ -182,7 +182,7 @@ export default function VetDetailPage() {
       fetchSpecializations();
       fetchFacilities();
     }
-  }, [id]);
+  }, [id, fetchVetDetail]);
 
   const handleAddDoctor = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -340,9 +340,11 @@ export default function VetDetailPage() {
       <h1 className="text-3xl font-bold">{vetDetail.vet_name}</h1>
       <div className="grid md:grid-cols-2 gap-8">
         <div>
-          <img
+          <Image
             src={vetDetail.vet_image}
             alt={vetDetail.vet_name}
+            width={500}
+            height={400}
             className="w-full h-64 object-cover rounded-lg"
           />
           <p className="mt-4">{vetDetail.vet_description}</p>
