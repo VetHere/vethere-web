@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -77,6 +77,7 @@ export default function VetDetailPage() {
   const [specializations, setSpecializations] = useState<Specialization[]>([]);
   const [facilities, setFacilities] = useState<Facility[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const router = useRouter();
 
   const fetchVetDetail = useCallback(async () => {
     setIsLoading(true);
@@ -348,6 +349,9 @@ export default function VetDetailPage() {
 
   return (
     <div className="container mx-auto p-4 space-y-8">
+      <Button variant="outline" onClick={() => router.back()} className="mb-4">
+        ← Back
+      </Button>
       <h1 className="text-3xl font-bold">{vetDetail.vet_name}</h1>
       <div className="grid md:grid-cols-2 gap-8">
         <div>
