@@ -72,6 +72,8 @@ export default function VetDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [isAddDoctorOpen, setIsAddDoctorOpen] = useState(false);
   const [isAddFacilityOpen, setIsAddFacilityOpen] = useState(false);
+  const [isDeleteDoctorOpen, setIsDeleteDoctorOpen] = useState(false);
+  const [doctorToDelete, setDoctorToDelete] = useState<string | null>(null);
   const [specializations, setSpecializations] = useState<Specialization[]>([]);
   const [facilities, setFacilities] = useState<Facility[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -244,7 +246,14 @@ export default function VetDetailPage() {
     }
   };
 
-  const handleDeleteDoctor = async (doctorId: string) => {
+  const handleDeleteDoctorClick = (doctorId: string) => {
+    setDoctorToDelete(doctorId);
+    setIsDeleteDoctorOpen(true);
+  };
+
+  const handleDeleteDoctor = async () => {
+    if (!doctorToDelete) return;
+
     const adminToken = sessionStorage.getItem("access_token");
     if (!adminToken) {
       setError("Admin access token is missing. Please log in.");
@@ -258,7 +267,7 @@ export default function VetDetailPage() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${adminToken}`,
         },
-        body: JSON.stringify({ doctor_id: doctorId }),
+        body: JSON.stringify({ doctor_id: doctorToDelete }),
       });
 
       const responseData = await response.json();
@@ -269,6 +278,8 @@ export default function VetDetailPage() {
 
       if (responseData.meta.success) {
         await fetchVetDetail();
+        setIsDeleteDoctorOpen(false);
+        setDoctorToDelete(null);
       } else {
         throw new Error(responseData.meta.message);
       }
@@ -340,11 +351,9 @@ export default function VetDetailPage() {
       <h1 className="text-3xl font-bold">{vetDetail.vet_name}</h1>
       <div className="grid md:grid-cols-2 gap-8">
         <div>
-          <Image
+          <img
             src={vetDetail.vet_image}
             alt={vetDetail.vet_name}
-            width={500}
-            height={400}
             className="w-full h-64 object-cover rounded-lg"
           />
           <p className="mt-4">{vetDetail.vet_description}</p>
@@ -444,6 +453,7 @@ export default function VetDetailPage() {
                   <TableHead>Name</TableHead>
                   <TableHead>Specialization</TableHead>
                   <TableHead>Rating</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -459,8 +469,11 @@ export default function VetDetailPage() {
                     </TableCell>
                     <TableCell>
                       <Button
-                        className="bg-red-500 text-white hover:bg-red-600"
-                        onClick={() => handleDeleteDoctor(doctor.doctor_id)}
+                        variant="ghost"
+                        className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                        onClick={() =>
+                          handleDeleteDoctorClick(doctor.doctor_id)
+                        }
                       >
                         Delete
                       </Button>
@@ -523,6 +536,31 @@ export default function VetDetailPage() {
           ) : (
             <p>No facilities information available</p>
           )}
+          <Dialog
+            open={isDeleteDoctorOpen}
+            onOpenChange={setIsDeleteDoctorOpen}
+          >
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Confirm Deletion</DialogTitle>
+              </DialogHeader>
+              <p>
+                Are you sure you want to delete this doctor? This action cannot
+                be undone.
+              </p>
+              <div className="flex justify-end space-x-2 mt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setIsDeleteDoctorOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button variant="destructive" onClick={handleDeleteDoctor}>
+                  Delete
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
     </div>

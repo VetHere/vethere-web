@@ -8,6 +8,9 @@ const nextConfig = {
       },
     ];
   },
+  images: {
+    domains: ["vcbmohwgaoilabcaynep.supabase.co"], // Allow Supabase storage domain
+  },
 };
 
 export default nextConfig;

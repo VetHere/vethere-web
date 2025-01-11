@@ -14,6 +14,14 @@ import { DayPicker } from "react-day-picker";
 import "react-day-picker/dist/style.css";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioButton } from "@/components/ui/radio-button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogClose,
+} from "@/components/ui/dialog";
 
 type Appointment = {
   appointment_id: string;
@@ -42,6 +50,15 @@ export default function AdminAppointmentPage() {
   const [treatment, setTreatment] = useState("");
   const [vaccines, setVaccines] = useState<Vaccine[]>([]);
   const [selectedVaccine, setSelectedVaccine] = useState<string>("");
+  const [isStatusChangeDialogOpen, setIsStatusChangeDialogOpen] =
+    useState(false);
+  const [isMedicalRecordDialogOpen, setIsMedicalRecordDialogOpen] =
+    useState(false);
+  const [isVaccineDialogOpen, setIsVaccineDialogOpen] = useState(false);
+  const [appointmentToChange, setAppointmentToChange] = useState<{
+    id: string;
+    newStatus: string;
+  } | null>(null);
 
   const formatDateToLocal = (date: Date) => {
     const year = date.getFullYear();
@@ -102,10 +119,15 @@ export default function AdminAppointmentPage() {
     }
   };
 
-  const handleStatusChange = async (
-    appointmentId: string,
-    newStatus: string
-  ) => {
+  const handleStatusChange = (appointmentId: string, newStatus: string) => {
+    setAppointmentToChange({ id: appointmentId, newStatus });
+    setIsStatusChangeDialogOpen(true);
+  };
+
+  const confirmStatusChange = async () => {
+    if (!appointmentToChange) return;
+
+    const { id, newStatus } = appointmentToChange;
     const doctorToken = sessionStorage.getItem("access_token");
     if (!doctorToken) {
       setError("Admin access token is missing. Please log in.");
@@ -120,7 +142,7 @@ export default function AdminAppointmentPage() {
           Authorization: `Bearer ${doctorToken}`,
         },
         body: JSON.stringify({
-          appointment_id: appointmentId,
+          appointment_id: id,
           appointment_status: newStatus,
         }),
       });
@@ -134,18 +156,19 @@ export default function AdminAppointmentPage() {
 
       setAppointments((prevAppointments) =>
         prevAppointments.map((appointment) =>
-          appointment.appointment_id === appointmentId
+          appointment.appointment_id === id
             ? { ...appointment, appointment_status: newStatus }
             : appointment
         )
       );
 
       if (newStatus === "Accepted") {
-        const appointment = appointments.find(
-          (a) => a.appointment_id === appointmentId
-        );
+        const appointment = appointments.find((a) => a.appointment_id === id);
         setSelectedAppointment(appointment || null);
       }
+
+      setIsStatusChangeDialogOpen(false);
+      setAppointmentToChange(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
     }
@@ -158,8 +181,12 @@ export default function AdminAppointmentPage() {
     setSelectedVaccine("");
   };
 
-  const handleMedicalRecordSubmit = async (e: React.FormEvent) => {
+  const handleMedicalRecordSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setIsMedicalRecordDialogOpen(true);
+  };
+
+  const confirmMedicalRecordSubmit = async () => {
     if (!selectedAppointment) return;
 
     const doctorToken = sessionStorage.getItem("access_token");
@@ -192,6 +219,7 @@ export default function AdminAppointmentPage() {
       setDiagnosis("");
       setTreatment("");
       await fetchAppointments(selectedDate);
+      setIsMedicalRecordDialogOpen(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
     }
@@ -224,8 +252,12 @@ export default function AdminAppointmentPage() {
     }
   };
 
-  const handleVaccineSubmit = async (e: React.FormEvent) => {
+  const handleVaccineSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setIsVaccineDialogOpen(true);
+  };
+
+  const confirmVaccineSubmit = async () => {
     if (!selectedAppointment || !selectedVaccine) return;
 
     const doctorToken = sessionStorage.getItem("access_token");
@@ -256,6 +288,7 @@ export default function AdminAppointmentPage() {
 
       setSelectedVaccine("");
       await fetchAppointments(selectedDate);
+      setIsVaccineDialogOpen(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
     }
@@ -411,6 +444,77 @@ export default function AdminAppointmentPage() {
           )}
         </div>
       </div>
+      <Dialog
+        open={isStatusChangeDialogOpen}
+        onOpenChange={setIsStatusChangeDialogOpen}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Status Change</DialogTitle>
+            <p className="text-sm text-gray-500">
+              Are you sure you want to change the appointment status?
+            </p>
+          </DialogHeader>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button
+                variant="outline"
+                onClick={() => setIsStatusChangeDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+            </DialogClose>
+            <Button onClick={confirmStatusChange}>Confirm</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={isMedicalRecordDialogOpen}
+        onOpenChange={setIsMedicalRecordDialogOpen}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Medical Record Submission</DialogTitle>
+            <p className="text-sm text-gray-500">
+              Are you sure you want to submit this medical record?
+            </p>
+          </DialogHeader>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button
+                variant="outline"
+                onClick={() => setIsMedicalRecordDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+            </DialogClose>
+            <Button onClick={confirmMedicalRecordSubmit}>Confirm</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isVaccineDialogOpen} onOpenChange={setIsVaccineDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Vaccine Submission</DialogTitle>
+            <p className="text-sm text-gray-500">
+              Are you sure you want to submit this vaccine record?
+            </p>
+          </DialogHeader>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button
+                variant="outline"
+                onClick={() => setIsVaccineDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+            </DialogClose>
+            <Button onClick={confirmVaccineSubmit}>Confirm</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

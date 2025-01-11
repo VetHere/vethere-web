@@ -46,6 +46,8 @@ export default function CombinedVetClinic() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedVet, setSelectedVet] = useState<Vet | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [vetToDelete, setVetToDelete] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const editFileInputRef = useRef<HTMLInputElement>(null);
 
@@ -102,7 +104,14 @@ export default function CombinedVetClinic() {
     fetchVets();
   }, []);
 
-  const handleDelete = async (id: string) => {
+  const handleDeleteClick = (id: string) => {
+    setVetToDelete(id);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (!vetToDelete) return;
+
     const adminToken = sessionStorage.getItem("access_token");
     if (!adminToken) {
       setError("Admin access token is missing. Please log in.");
@@ -116,16 +125,16 @@ export default function CombinedVetClinic() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${adminToken}`,
         },
-        body: JSON.stringify({ vet_id: id }),
+        body: JSON.stringify({ vet_id: vetToDelete }),
       });
-      const responseData = await response.json();
-      console.log("Response:", responseData);
 
       if (!response.ok) throw new Error("Failed to delete vet");
 
       const data = await response.json();
       if (data.meta.success) {
-        setVets(vets.filter((vet) => vet.vet_id !== id));
+        setVets(vets.filter((vet) => vet.vet_id !== vetToDelete));
+        setIsDeleteDialogOpen(false);
+        setVetToDelete(null);
       } else {
         throw new Error(data.meta.message);
       }
@@ -485,7 +494,7 @@ export default function CombinedVetClinic() {
                 <TableCell className="space-x-2">
                   <Button
                     variant="ghost"
-                    onClick={() => handleDelete(vet.vet_id)}
+                    onClick={() => handleDeleteClick(vet.vet_id)}
                   >
                     Delete
                   </Button>
@@ -512,6 +521,29 @@ export default function CombinedVetClinic() {
           </TableBody>
         </Table>
       )}
+
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Deletion</DialogTitle>
+          </DialogHeader>
+          <p>
+            Are you sure you want to delete this vet clinic? This action cannot
+            be undone.
+          </p>
+          <div className="flex justify-end space-x-2 mt-4">
+            <Button
+              variant="outline"
+              onClick={() => setIsDeleteDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDelete}>
+              Delete
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
