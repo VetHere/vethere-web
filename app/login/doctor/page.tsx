@@ -114,12 +114,6 @@ export default function DoctorLoginPage() {
           <Link href="/login" className="text-sm text-gray-500 hover:underline">
             Back to main login
           </Link>
-          <Link
-            href="/login/admin"
-            className="text-sm text-gray-500 hover:underline"
-          >
-            Admin Login
-          </Link>
         </CardFooter>
       </Card>
       <dialog id="successDialog" className="p-6 rounded-lg shadow-lg bg-white">
