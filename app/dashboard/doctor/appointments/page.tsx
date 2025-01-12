@@ -85,7 +85,7 @@ export default function AdminAppointmentPage() {
       console.log("Selected Date Object:", date);
       console.log("Formatted Date being sent:", formattedDate);
 
-      const response = await fetch("http:///appointment/doctor", {
+      const response = await fetch(`${API_BASE_URL}/appointment/doctor`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
