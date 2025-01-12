@@ -53,7 +53,7 @@ export default function DoctorLoginPage() {
         dialog.showModal();
 
         setTimeout(() => {
-          router.push("/dashboard/admin");
+          router.push("/dashboard/doctor");
         }, 1000);
       } else {
         let errorMessage = "Login failed";
