@@ -231,7 +231,7 @@ export default function DoctorProfilePage() {
                   </DialogHeader>
                   <form onSubmit={handleUpdateDoctor} className="space-y-4">
                     <div>
-                      <Label htmlFor="doctor_name">Name (Optional)</Label>
+                      <Label htmlFor="doctor_name">Name</Label>
                       <Input
                         id="doctor_name"
                         name="doctor_name"
@@ -239,13 +239,11 @@ export default function DoctorProfilePage() {
                       />
                     </div>
                     <div>
-                      <Label htmlFor="password">New Password (Optional)</Label>
+                      <Label htmlFor="password">New Password</Label>
                       <Input id="password" name="password" type="password" />
                     </div>
                     <div>
-                      <Label htmlFor="doctor_image">
-                        Profile Image (Optional)
-                      </Label>
+                      <Label htmlFor="doctor_image">Profile Image</Label>
                       <Input
                         id="doctor_image"
                         name="doctor_image"
@@ -255,7 +253,7 @@ export default function DoctorProfilePage() {
                       />
                     </div>
                     <div>
-                      <Label>Specialization (Optional)</Label>
+                      <Label>Specialization</Label>
                       <div className="space-y-2">
                         {specializations.map((spec) => (
                           <RadioButton

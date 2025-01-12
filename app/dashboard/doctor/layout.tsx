@@ -34,14 +34,14 @@ export default function DashboardLayout({
     <div className="flex h-screen bg-gray-100">
       <aside className="w-64 bg-white p-4">
         <nav className="space-y-2">
+          <Link href="/dashboard/doctor/info">
+            <Button variant="ghost" className="w-full justify-start">
+              Profile
+            </Button>
+          </Link>
           <Link href="/dashboard/doctor/appointments">
             <Button variant="ghost" className="w-full justify-start">
               Appointments
-            </Button>
-          </Link>
-          <Link href="/dashboard/doctor/info">
-            <Button variant="ghost" className="w-full justify-start">
-              Information
             </Button>
           </Link>
           <Button
