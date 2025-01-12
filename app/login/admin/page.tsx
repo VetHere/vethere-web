@@ -14,6 +14,7 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import Link from "next/link";
+import { API_BASE_URL } from "@/pages/api/api";
 
 export default function AdminLoginPage() {
   const [username, setUsername] = useState("");
@@ -30,7 +31,7 @@ export default function AdminLoginPage() {
     };
 
     try {
-      const response = await fetch("http://localhost:8000/auth/login", {
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

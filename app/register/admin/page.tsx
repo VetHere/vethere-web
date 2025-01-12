@@ -14,6 +14,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import Link from "next/link";
+import { API_BASE_URL } from "@/pages/api/api";
 
 export default function AdminRegisterPage() {
   const [username, setUsername] = useState("");
@@ -34,7 +35,7 @@ export default function AdminRegisterPage() {
     };
 
     try {
-      const response = await fetch("/api/auth/admin/register", {
+      const response = await fetch(`${API_BASE_URL}/auth/admin/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

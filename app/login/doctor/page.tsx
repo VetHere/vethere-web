@@ -14,6 +14,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import Link from "next/link";
+import { API_BASE_URL } from "@/pages/api/api";
 
 export default function DoctorLoginPage() {
   const [username, setUsername] = useState("");
@@ -30,7 +31,7 @@ export default function DoctorLoginPage() {
     };
 
     try {
-      const response = await fetch("http://localhost:8000/auth/doctor/login", {
+      const response = await fetch(`${API_BASE_URL}/auth/doctor/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
