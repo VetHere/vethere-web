@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { API_BASE_URL } from "@/pages/api/api";
 
 type Appointment = {
   appointment_id: string;
@@ -67,7 +68,7 @@ export default function AdminAppointmentPage() {
     }
 
     try {
-      const response = await fetch("http://localhost:8000/vet/admin", {
+      const response = await fetch(`${API_BASE_URL}/vet/admin`, {
         headers: {
           Authorization: `Bearer ${adminToken}`,
         },
@@ -94,7 +95,7 @@ export default function AdminAppointmentPage() {
     }
 
     try {
-      const response = await fetch("http://localhost:8000/vet/details", {
+      const response = await fetch(`${API_BASE_URL}/vet/details`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -132,20 +133,17 @@ export default function AdminAppointmentPage() {
 
     try {
       const formattedDate = formatDateToLocal(selectedDate);
-      const response = await fetch(
-        "http://localhost:8000/appointment/admin/doctor",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${adminToken}`,
-          },
-          body: JSON.stringify({
-            doctor_id: selectedDoctor,
-            appointment_date: formattedDate,
-          }),
-        }
-      );
+      const response = await fetch(`${API_BASE_URL}/appointment/admin/doctor`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${adminToken}`,
+        },
+        body: JSON.stringify({
+          doctor_id: selectedDoctor,
+          appointment_date: formattedDate,
+        }),
+      });
 
       if (!response.ok) throw new Error("Failed to fetch appointments");
 

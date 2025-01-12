@@ -22,6 +22,7 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog";
+import { API_BASE_URL } from "@/pages/api/api";
 
 type Appointment = {
   appointment_id: string;
@@ -84,7 +85,7 @@ export default function AdminAppointmentPage() {
       console.log("Selected Date Object:", date);
       console.log("Formatted Date being sent:", formattedDate);
 
-      const response = await fetch("http://localhost:8000/appointment/doctor", {
+      const response = await fetch("http:///appointment/doctor", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -135,7 +136,7 @@ export default function AdminAppointmentPage() {
     }
 
     try {
-      const response = await fetch("http://localhost:8000/appointment/doctor", {
+      const response = await fetch(`${API_BASE_URL}/appointment/doctor`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -196,7 +197,7 @@ export default function AdminAppointmentPage() {
     }
 
     try {
-      const response = await fetch("http://localhost:8000/medical-record/", {
+      const response = await fetch(`${API_BASE_URL}/medical-record/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -233,7 +234,7 @@ export default function AdminAppointmentPage() {
     }
 
     try {
-      const response = await fetch("http://localhost:8000/vaccine", {
+      const response = await fetch(`${API_BASE_URL}/vaccine`, {
         headers: {
           Authorization: `Bearer ${doctorToken}`,
         },
@@ -267,7 +268,7 @@ export default function AdminAppointmentPage() {
     }
 
     try {
-      const response = await fetch("http://localhost:8000/vaccine-history", {
+      const response = await fetch(`${API_BASE_URL}/vaccine-history`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

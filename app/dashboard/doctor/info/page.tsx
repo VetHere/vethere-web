@@ -13,6 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioButton } from "@/components/ui/radio-button";
+import { API_BASE_URL } from "@/pages/api/api";
 
 interface Doctor {
   doctor_id: string;
@@ -49,7 +50,7 @@ export default function DoctorProfilePage() {
     }
 
     try {
-      const response = await fetch("http://localhost:8000/doctor", {
+      const response = await fetch(`${API_BASE_URL}/doctor`, {
         headers: {
           Authorization: `Bearer ${doctorToken}`,
         },
@@ -79,7 +80,7 @@ export default function DoctorProfilePage() {
     }
 
     try {
-      const response = await fetch("http://localhost:8000/specialization", {
+      const response = await fetch(`${API_BASE_URL}/specialization`, {
         headers: {
           Authorization: `Bearer ${doctorToken}`,
         },
@@ -143,7 +144,7 @@ export default function DoctorProfilePage() {
         return;
       }
 
-      const response = await fetch("http://localhost:8000/doctor", {
+      const response = await fetch(`${API_BASE_URL}/doctor`, {
         method: "PATCH",
         headers: {
           Authorization: `Bearer ${doctorToken}`,

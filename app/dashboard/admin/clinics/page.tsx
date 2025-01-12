@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/dialog";
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
+import { API_BASE_URL } from "@/pages/api/api";
 
 interface Vet {
   vet_id: string;
@@ -62,7 +63,7 @@ export default function CombinedVetClinic() {
     }
 
     try {
-      const response = await fetch("http://localhost:8000/vet/admin", {
+      const response = await fetch(`${API_BASE_URL}/vet/admin`, {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${adminToken}`,
@@ -117,7 +118,7 @@ export default function CombinedVetClinic() {
     }
 
     try {
-      const response = await fetch("http://localhost:8000/vet/admin", {
+      const response = await fetch(`${API_BASE_URL}/vet/admin`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
@@ -176,7 +177,7 @@ export default function CombinedVetClinic() {
         console.log(`${key}:`, value);
       });
 
-      const response = await fetch("http://localhost:8000/vet", {
+      const response = await fetch(`${API_BASE_URL}/vet`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${adminToken}`,
@@ -258,7 +259,7 @@ export default function CombinedVetClinic() {
 
       formData.append("vet_id", selectedVet.vet_id);
 
-      const response = await fetch("http://localhost:8000/vet", {
+      const response = await fetch(`${API_BASE_URL}/vet`, {
         method: "PATCH",
         headers: {
           Authorization: `Bearer ${adminToken}`,

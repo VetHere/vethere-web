@@ -23,6 +23,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioButton } from "@/components/ui/radio-button";
+import { API_BASE_URL } from "@/pages/api/api";
 
 interface VetDetail {
   vet_id: string;
@@ -89,7 +90,7 @@ export default function VetDetailPage() {
     }
 
     try {
-      const response = await fetch("http://localhost:8000/vet/details", {
+      const response = await fetch(`${API_BASE_URL}/vet/details`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -129,7 +130,7 @@ export default function VetDetailPage() {
     }
 
     try {
-      const response = await fetch("http://localhost:8000/specialization", {
+      const response = await fetch(`${API_BASE_URL}/specialization`, {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${adminToken}`,
@@ -157,7 +158,7 @@ export default function VetDetailPage() {
     }
 
     try {
-      const response = await fetch("http://localhost:8000/facility", {
+      const response = await fetch(`${API_BASE_URL}/facility`, {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${adminToken}`,
@@ -210,7 +211,7 @@ export default function VetDetailPage() {
         formData.append("doctor_image", imageFile);
       }
 
-      const response = await fetch("http://localhost:8000/doctor/create", {
+      const response = await fetch(`${API_BASE_URL}/doctor/create`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${adminToken}`,
@@ -259,7 +260,7 @@ export default function VetDetailPage() {
     }
 
     try {
-      const response = await fetch(`http://localhost:8000/doctor`, {
+      const response = await fetch(`${API_BASE_URL}/doctor`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
@@ -306,7 +307,7 @@ export default function VetDetailPage() {
         .filter((checkbox) => (checkbox as HTMLInputElement).checked)
         .map((checkbox) => (checkbox as HTMLInputElement).value);
 
-      const response = await fetch("http://localhost:8000/vet/facility", {
+      const response = await fetch(`${API_BASE_URL}/vet/facility`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
