@@ -163,11 +163,6 @@ export default function AdminAppointmentPage() {
         )
       );
 
-      if (newStatus === "Accepted") {
-        const appointment = appointments.find((a) => a.appointment_id === id);
-        setSelectedAppointment(appointment || null);
-      }
-
       setIsStatusChangeDialogOpen(false);
       setAppointmentToChange(null);
     } catch (err) {
@@ -344,8 +339,6 @@ export default function AdminAppointmentPage() {
                     hour: "2-digit",
                     minute: "2-digit",
                   });
-                  const isCompleted =
-                    appointment.appointment_status === "Accepted";
                   return (
                     <TableRow key={appointment.appointment_id}>
                       <TableCell>{appointment.client_name}</TableCell>
@@ -359,20 +352,19 @@ export default function AdminAppointmentPage() {
                           onClick={() => setSelectedAppointment(appointment)}
                           className="mb-2"
                         >
-                          Insert
+                          Insert Details
                         </Button>
                         <Button
                           variant="outline"
-                          onClick={() =>
-                            handleStatusChange(
-                              appointment.appointment_id,
-                              isCompleted ? "Waiting" : "Accepted"
-                            )
-                          }
+                          onClick={() => {
+                            setSelectedAppointment(appointment);
+                            setAppointmentToChange({
+                              id: appointment.appointment_id,
+                              newStatus: appointment.appointment_status,
+                            });
+                          }}
                         >
-                          {isCompleted
-                            ? "Mark as Waiting"
-                            : "Mark as Completed"}
+                          Change Status
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -440,6 +432,68 @@ export default function AdminAppointmentPage() {
                 <Button type="submit" disabled={!selectedVaccine}>
                   Submit Vaccine
                 </Button>
+              </form>
+            </div>
+          )}
+          {appointmentToChange && (
+            <div className="mt-8 p-4 border rounded-lg">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold">
+                  Change Status for {selectedAppointment?.pet_name}
+                </h2>
+                <Button onClick={() => setAppointmentToChange(null)}>
+                  Close
+                </Button>
+              </div>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleStatusChange(
+                    appointmentToChange.id,
+                    appointmentToChange.newStatus
+                  );
+                }}
+                className="space-y-4"
+              >
+                <div className="space-y-2">
+                  <RadioButton
+                    label="Accepted"
+                    name="status"
+                    value="Accepted"
+                    checked={appointmentToChange.newStatus === "Accepted"}
+                    onChange={(e) =>
+                      setAppointmentToChange({
+                        ...appointmentToChange,
+                        newStatus: e.target.value,
+                      })
+                    }
+                  />
+                  <RadioButton
+                    label="Rejected"
+                    name="status"
+                    value="Rejected"
+                    checked={appointmentToChange.newStatus === "Rejected"}
+                    onChange={(e) =>
+                      setAppointmentToChange({
+                        ...appointmentToChange,
+                        newStatus: e.target.value,
+                      })
+                    }
+                  />
+                  <RadioButton
+                    label="Finished"
+                    name="status"
+                    value="Finished"
+                    checked={appointmentToChange.newStatus === "Finished"}
+                    onChange={(e) =>
+                      setAppointmentToChange({
+                        ...appointmentToChange,
+                        newStatus: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+                <Button type="submit">Change Status</Button>
               </form>
             </div>
           )}
