@@ -20,14 +20,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { ChevronRight, Edit2 } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 
 interface Vet {
   vet_id: string;
   vet_name: string;
   vet_description: string;
-  vet_rating: number;
   vet_open_hour: string;
   vet_close_hour: string;
   vet_address: string;
@@ -82,7 +81,6 @@ export default function CombinedVetClinic() {
           vet_open_hour: vet.vet_open_hour,
           vet_close_hour: vet.vet_close_hour,
           vet_image: vet.vet_image,
-          vet_rating: vet.vet_rating,
           vet_detail: {
             vet_phone_number: vet.vet_detail?.vet_phone_number,
             vet_latitude: vet.vet_detail?.vet_latitude,
@@ -498,12 +496,7 @@ export default function CombinedVetClinic() {
                   >
                     Delete
                   </Button>
-                  <Button
-                    variant="ghost"
-                    onClick={() => handleEdit(vet)}
-                    className="flex items-center gap-1"
-                  >
-                    <Edit2 className="h-4 w-4" />
+                  <Button variant="ghost" onClick={() => handleEdit(vet)}>
                     Edit
                   </Button>
                   <Link

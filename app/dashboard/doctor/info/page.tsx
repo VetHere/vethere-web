@@ -17,7 +17,6 @@ import { RadioButton } from "@/components/ui/radio-button";
 interface Doctor {
   doctor_id: string;
   doctor_name: string;
-  doctor_rating: number;
   doctor_image?: string;
   specialization: {
     specialization_id: string;
@@ -215,13 +214,6 @@ export default function DoctorProfilePage() {
                   <h3 className="text-lg font-semibold">Specialization</h3>
                   <p>{doctor.specialization.specialization_name}</p>
                 </div>
-                {/* <div>
-                  <h3 className="text-lg font-semibold">Rating</h3>
-                  <p className="flex items-center gap-2">
-                    {doctor.doctor_rating}
-                    <Star className="h-4 w-4 text-yellow-400" />
-                  </p>
-                </div> */}
               </div>
             </div>
             <div>

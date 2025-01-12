@@ -28,7 +28,6 @@ interface VetDetail {
   vet_id: string;
   vet_name: string;
   vet_description: string;
-  vet_rating: number;
   vet_open_hour: string;
   vet_close_hour: string;
   vet_address: string;
@@ -42,7 +41,6 @@ interface VetDetail {
   vet_doctors: Array<{
     doctor_id: string;
     doctor_name: string;
-    doctor_rating: number;
     doctor_image?: string;
     specialization: {
       specialization_id: string;
@@ -206,7 +204,6 @@ export default function VetDetailPage() {
       formData.append("username", form.username.value);
       formData.append("password", form.password.value);
       formData.append("doctor_name", form.doctor_name.value);
-      formData.append("doctor_rating", form.doctor_rating.value);
 
       const imageFile = fileInputRef.current?.files?.[0];
       if (imageFile) {
@@ -372,10 +369,6 @@ export default function VetDetailPage() {
               <strong>Hours:</strong> {vetDetail.vet_open_hour} -{" "}
               {vetDetail.vet_close_hour}
             </p>
-            <p>
-              <strong>Rating:</strong> {vetDetail.vet_rating}{" "}
-              <Star className="inline h-4 w-4 text-yellow-400" />
-            </p>
           </div>
         </div>
         <div>
@@ -408,18 +401,6 @@ export default function VetDetailPage() {
                   <div>
                     <Label htmlFor="doctor_name">Doctor Name</Label>
                     <Input id="doctor_name" name="doctor_name" required />
-                  </div>
-                  <div>
-                    <Label htmlFor="doctor_rating">Doctor Rating</Label>
-                    <Input
-                      id="doctor_rating"
-                      name="doctor_rating"
-                      type="number"
-                      min="0"
-                      max="5"
-                      step="0.1"
-                      required
-                    />
                   </div>
                   <div>
                     <Label htmlFor="doctor_image">Doctor Image</Label>
@@ -456,7 +437,6 @@ export default function VetDetailPage() {
                 <TableRow>
                   <TableHead>Name</TableHead>
                   <TableHead>Specialization</TableHead>
-                  <TableHead>Rating</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -466,10 +446,6 @@ export default function VetDetailPage() {
                     <TableCell>{doctor.doctor_name}</TableCell>
                     <TableCell>
                       {doctor.specialization.specialization_name}
-                    </TableCell>
-                    <TableCell className="flex items-center gap-1">
-                      {doctor.doctor_rating}
-                      <Star className="h-4 w-4 text-yellow-400" />
                     </TableCell>
                     <TableCell>
                       <Button
