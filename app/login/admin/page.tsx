@@ -45,7 +45,15 @@ export default function AdminLoginPage() {
         sessionStorage.setItem("refresh_token", refresh_token);
         sessionStorage.setItem("isLoggedIn", "true");
         sessionStorage.setItem("userRole", "admin");
-        router.push("/dashboard/admin");
+
+        const dialog = document.getElementById(
+          "successDialog"
+        ) as HTMLDialogElement;
+        dialog.showModal();
+
+        setTimeout(() => {
+          router.push("/dashboard/admin");
+        }, 1000);
       } else {
         let errorMessage = "Login failed";
         try {
@@ -113,6 +121,27 @@ export default function AdminLoginPage() {
           </Link>
         </CardFooter>
       </Card>
+      <dialog id="successDialog" className="p-6 rounded-lg shadow-lg bg-white">
+        <div className="text-center">
+          <div className="mb-4 text-green-500">
+            <svg
+              className="mx-auto h-12 w-12"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M5 13l4 4L19 7"
+              />
+            </svg>
+          </div>
+          <h3 className="mb-2 text-lg font-semibold">Login Successful!</h3>
+          <p className="mb-4 text-gray-600">Redirecting to dashboard...</p>
+        </div>
+      </dialog>
     </div>
   );
 }
