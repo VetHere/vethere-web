@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioButton } from "@/components/ui/radio-button";
 import { API_BASE_URL } from "@/pages/api/api";
+import { Dropzone } from "@/components/ui/dropzone";
 
 interface Doctor {
   doctor_id: string;
@@ -201,7 +202,7 @@ export default function DoctorProfilePage() {
             <div>
               {doctor.doctor_image && (
                 <img
-                  src={doctor.doctor_image}
+                  src={doctor.doctor_image || "/placeholder.svg"}
                   alt={doctor.doctor_name}
                   className="w-full h-64 object-cover rounded-lg mb-4"
                 />
@@ -244,12 +245,22 @@ export default function DoctorProfilePage() {
                     </div>
                     <div>
                       <Label htmlFor="doctor_image">Profile Image</Label>
+                      <Dropzone
+                        onFileAccepted={(file) => {
+                          if (fileInputRef.current) {
+                            const dataTransfer = new DataTransfer();
+                            dataTransfer.items.add(file);
+                            fileInputRef.current.files = dataTransfer.files;
+                          }
+                        }}
+                      />
                       <Input
                         id="doctor_image"
                         name="doctor_image"
                         type="file"
                         accept="image/*"
                         ref={fileInputRef}
+                        className="hidden"
                       />
                     </div>
                     <div>

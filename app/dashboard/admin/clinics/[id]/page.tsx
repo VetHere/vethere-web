@@ -24,6 +24,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioButton } from "@/components/ui/radio-button";
 import { API_BASE_URL } from "@/pages/api/api";
+import { Dropzone } from "@/components/ui/dropzone";
 
 interface VetDetail {
   vet_id: string;
@@ -354,7 +355,7 @@ export default function VetDetailPage() {
       <div className="grid md:grid-cols-2 gap-8">
         <div>
           <img
-            src={vetDetail.vet_image}
+            src={vetDetail.vet_image || "/placeholder.svg"}
             alt={vetDetail.vet_name}
             className="w-full h-64 object-cover rounded-lg"
           />
@@ -405,12 +406,22 @@ export default function VetDetailPage() {
                   </div>
                   <div>
                     <Label htmlFor="doctor_image">Doctor Image</Label>
+                    <Dropzone
+                      onFileAccepted={(file: File) => {
+                        if (fileInputRef.current) {
+                          const dataTransfer = new DataTransfer();
+                          dataTransfer.items.add(file);
+                          fileInputRef.current.files = dataTransfer.files;
+                        }
+                      }}
+                    />
                     <Input
                       id="doctor_image"
                       name="doctor_image"
                       type="file"
                       accept="image/*"
                       ref={fileInputRef}
+                      className="hidden"
                     />
                   </div>
                   <div>
