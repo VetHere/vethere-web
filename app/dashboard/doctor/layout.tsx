@@ -17,13 +17,13 @@ export default function DashboardLayout({
     const loggedIn = sessionStorage.getItem("isLoggedIn") === "true";
     setIsLoggedIn(loggedIn);
     if (!loggedIn) {
-      router.push("/login");
+      router.push("/login/doctor");
     }
   }, [router]);
 
   const handleLogout = () => {
     sessionStorage.removeItem("isLoggedIn");
-    router.push("/login");
+    router.push("/login/doctor");
   };
 
   if (!isLoggedIn) {

@@ -111,9 +111,6 @@ export default function AdminLoginPage() {
           </form>
         </CardContent>
         <CardFooter className="flex justify-between">
-          <Link href="/login" className="text-sm text-gray-500 hover:underline">
-            Back to main login
-          </Link>
           <Link
             href="/register/admin"
             className="text-sm text-gray-500 hover:underline"

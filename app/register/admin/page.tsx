@@ -133,9 +133,6 @@ export default function AdminRegisterPage() {
           >
             Already have an account? Login
           </Link>
-          <Link href="/login" className="text-sm text-gray-500 hover:underline">
-            Back to main login
-          </Link>
         </CardFooter>
       </Card>
       <dialog id="successDialog" className="p-6 rounded-lg shadow-lg bg-white">
