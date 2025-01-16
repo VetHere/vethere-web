@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Dropzone } from "@/components/ui/dropzone";
 import {
   Table,
   TableBody,
@@ -347,12 +348,22 @@ export default function CombinedVetClinic() {
               </div>
               <div>
                 <Label htmlFor="vet_image">Clinic Image</Label>
+                <Dropzone
+                  onFileAccepted={(file) => {
+                    if (fileInputRef.current) {
+                      const dataTransfer = new DataTransfer();
+                      dataTransfer.items.add(file);
+                      fileInputRef.current.files = dataTransfer.files;
+                    }
+                  }}
+                />
                 <Input
                   id="vet_image"
                   name="vet_image"
                   type="file"
                   accept="image/*"
                   ref={fileInputRef}
+                  className="hidden"
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -435,12 +446,22 @@ export default function CombinedVetClinic() {
               </div>
               <div>
                 <Label htmlFor="edit_vet_image">Clinic Image</Label>
+                <Dropzone
+                  onFileAccepted={(file) => {
+                    if (editFileInputRef.current) {
+                      const dataTransfer = new DataTransfer();
+                      dataTransfer.items.add(file);
+                      editFileInputRef.current.files = dataTransfer.files;
+                    }
+                  }}
+                />
                 <Input
                   id="edit_vet_image"
                   name="vet_image"
                   type="file"
                   accept="image/*"
                   ref={editFileInputRef}
+                  className="hidden"
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
