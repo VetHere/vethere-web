@@ -60,6 +60,9 @@ export default function AdminAppointmentPage() {
     id: string;
     newStatus: string;
   } | null>(null);
+  const [activeForm, setActiveForm] = useState<"details" | "status" | null>(
+    null
+  );
 
   const formatDateToLocal = (date: Date) => {
     const year = date.getFullYear();
@@ -175,6 +178,8 @@ export default function AdminAppointmentPage() {
     setDiagnosis("");
     setTreatment("");
     setSelectedVaccine("");
+    setActiveForm(null);
+    setAppointmentToChange(null);
   };
 
   const handleMedicalRecordSubmit = (e: React.FormEvent) => {
@@ -349,7 +354,11 @@ export default function AdminAppointmentPage() {
                       <TableCell>
                         <Button
                           variant="outline"
-                          onClick={() => setSelectedAppointment(appointment)}
+                          onClick={() => {
+                            setSelectedAppointment(appointment);
+                            setActiveForm("details");
+                            setAppointmentToChange(null);
+                          }}
                           className="mb-2"
                         >
                           Insert Details
@@ -362,6 +371,7 @@ export default function AdminAppointmentPage() {
                               id: appointment.appointment_id,
                               newStatus: appointment.appointment_status,
                             });
+                            setActiveForm("status");
                           }}
                         >
                           Change Status
@@ -373,7 +383,7 @@ export default function AdminAppointmentPage() {
               </TableBody>
             </Table>
           )}
-          {selectedAppointment && (
+          {selectedAppointment && activeForm === "details" && (
             <div className="mt-8 p-4 border rounded-lg">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-semibold">
@@ -435,15 +445,13 @@ export default function AdminAppointmentPage() {
               </form>
             </div>
           )}
-          {appointmentToChange && (
+          {appointmentToChange && activeForm === "status" && (
             <div className="mt-8 p-4 border rounded-lg">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-semibold">
                   Change Status for {selectedAppointment?.pet_name}
                 </h2>
-                <Button onClick={() => setAppointmentToChange(null)}>
-                  Close
-                </Button>
+                <Button onClick={closeForm}>Close</Button>
               </div>
               <form
                 onSubmit={(e) => {
