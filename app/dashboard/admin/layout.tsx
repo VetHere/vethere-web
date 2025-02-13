@@ -17,7 +17,7 @@ export default function DashboardLayout({
     const loggedIn = sessionStorage.getItem("isLoggedIn") === "true";
     setIsLoggedIn(loggedIn);
     if (!loggedIn) {
-      router.push("/login/amdin");
+      router.push("/login/admin");
     }
   }, [router]);
 

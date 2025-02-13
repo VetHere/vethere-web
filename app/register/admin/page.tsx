@@ -57,7 +57,7 @@ export default function AdminRegisterPage() {
         dialog.showModal();
 
         setTimeout(() => {
-          router.push("/dashboard/admin");
+          router.push("/dashboard/admin/clinics");
         }, 1000);
       } else {
         const result = await response.json();

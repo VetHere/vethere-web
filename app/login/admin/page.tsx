@@ -53,7 +53,7 @@ export default function AdminLoginPage() {
         dialog.showModal();
 
         setTimeout(() => {
-          router.push("/dashboard/admin");
+          router.push("/dashboard/admin/clinics");
         }, 1000);
       } else {
         let errorMessage = "Login failed";
