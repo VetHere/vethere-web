@@ -245,9 +245,10 @@ export default function AdminAppointmentPage() {
                 {appointments.map((appointment) => {
                   const time = new Date(
                     appointment.appointment_time
-                  ).toLocaleTimeString(undefined, {
+                  ).toLocaleTimeString("en-GB", {
                     hour: "2-digit",
                     minute: "2-digit",
+                    hour12: false,
                   });
                   return (
                     <TableRow key={appointment.appointment_id}>
