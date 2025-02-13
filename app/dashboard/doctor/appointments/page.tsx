@@ -338,19 +338,18 @@ export default function AdminAppointmentPage() {
               </TableHeader>
               <TableBody>
                 {appointments.map((appointment) => {
-                  const time = new Date(
-                    appointment.appointment_time
-                  ).toLocaleTimeString(undefined, {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  });
+                  const time = new Date(appointment.appointment_time);
+                  const formattedTime = `${String(time.getUTCHours()).padStart(
+                    2,
+                    "0"
+                  )}:${String(time.getUTCMinutes()).padStart(2, "0")}`;
                   return (
                     <TableRow key={appointment.appointment_id}>
                       <TableCell>{appointment.client_name}</TableCell>
                       <TableCell>{appointment.pet_name}</TableCell>
                       <TableCell>{appointment.appointment_status}</TableCell>
                       <TableCell>{appointment.appointment_notes}</TableCell>
-                      <TableCell>{time}</TableCell>
+                      <TableCell>{formattedTime}</TableCell>
                       <TableCell>
                         <Button
                           variant="outline"
